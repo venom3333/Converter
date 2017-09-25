@@ -193,15 +193,24 @@ namespace ConvertorForSOI
             Thread t = new Thread(() => worker_DoWork(args));
             // Включаем режим STA (для работы с клипборд)
             t.SetApartmentState(ApartmentState.STA);
+
+            //progressBar.Visibility = System.Windows.Visibility.Visible;
+            //progressBar.InvalidateVisual();
+            //progressBar.UpdateLayout();
+            //btnOK.Visibility = Visibility.Hidden;
+            //label1.Visibility = System.Windows.Visibility.Hidden;
+
+            this.UpdateLayout();
+
             // старт
             t.Start();
             // Ждем завершения трэда и выполним все что потом
-            //t.Join();
+            // t.Join();
 
             //label1.Content = e.Result;
-            progressBar.Visibility = System.Windows.Visibility.Hidden;
-            btnOK.Visibility = Visibility.Visible;
-            label1.Visibility = System.Windows.Visibility.Visible;
+            //progressBar.Visibility = System.Windows.Visibility.Hidden;
+            //btnOK.Visibility = Visibility.Visible;
+            //label1.Visibility = System.Windows.Visibility.Visible;
             //worker.WorkerReportsProgress = true;                                    // сообщать о ходе выполнения
             //worker.ProgressChanged += worker_ProgressChanged;                       // происходит при вызове ReportProgress (пока что не работает)
             ////worker.DoWork += worker_DoWork;                                         // происходит при вызове RunWorkerAsync
@@ -228,11 +237,10 @@ namespace ConvertorForSOI
 
             bool isMissingPersons = args["isMissing"] == "true" ? true : false;
 
-            if (Convertor.ConvertToXLS(sourceFileRus, sourceFileEng, photoPath, isMissingPersons)) ;
-            //    e.Result = "Загрузка успешно завершена.";
-            //else
-            //    e.Result = "Не удалось загурзить данные.";
-            MessageBox.Show("ГОТОВО!");
+            if (Convertor.ConvertToXLS(sourceFileRus, sourceFileEng, photoPath, isMissingPersons))
+                MessageBox.Show("ГОТОВО!");
+            else
+                MessageBox.Show("Что-то не так!");
         }
 
         // Вызываем метод для прикрепления фото.

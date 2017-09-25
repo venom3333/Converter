@@ -1,0 +1,24 @@
+SELECT
+  sedNak27_1.dbo.Cards.card_id
+FROM
+  sedNak27_1.dbo.Cards
+  INNER JOIN sedNak27_1.dbo.Fields ON sedNak27_1.dbo.Fields.card_id = sedNak27_1.dbo.Cards.card_id
+  INNER JOIN sedNak27_1.dbo.FieldValues ON sedNak27_1.dbo.FieldValues.field_id = sedNak27_1.dbo.Fields.field_id
+  INNER JOIN sedNak27_1.dbo.Strings ON sedNak27_1.dbo.Strings.string_id = sedNak27_1.dbo.FieldValues.id
+  INNER JOIN sedNak27_1.dbo.FieldTypes ON sedNak27_1.dbo.Fields.field_type_id = sedNak27_1.dbo.FieldTypes.field_type_id
+  INNER JOIN sedNak27_1.dbo.PossibleFields ON sedNak27_1.dbo.FieldTypes.possible_field_id =
+    sedNak27_1.dbo.PossibleFields.possible_field_id
+WHERE
+  CONTAINS(sedNak27_1.dbo.Strings.string,'FORMSOF(INFLECTIONAL, "игил")')
+  AND sedNak27_1.dbo.PossibleFields.possible_field_id = 7
+UNION
+SELECT
+  sedNak27_1.dbo.Cards.card_id
+FROM
+  sedNak27_1.dbo.Cards
+  INNER JOIN sedNak27_1.dbo.Fields ON sedNak27_1.dbo.Fields.card_id = sedNak27_1.dbo.Cards.card_id
+  INNER JOIN sedNak27_1.dbo.FieldValues ON sedNak27_1.dbo.FieldValues.field_id = sedNak27_1.dbo.Fields.field_id
+  INNER JOIN sedNak27_1.dbo.FormattedTexts ON sedNak27_1.dbo.FormattedTexts.formatted_text_id =
+    sedNak27_1.dbo.FieldValues.id
+WHERE
+  CONTAINS(sedNak27_1.dbo.FormattedTexts.unformatted_text,'FORMSOF(INFLECTIONAL, "игил")')
