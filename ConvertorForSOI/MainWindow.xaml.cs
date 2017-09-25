@@ -23,6 +23,7 @@ using System.Windows.Controls.Primitives;
 using System.IO;
 using System.Configuration;
 using ConvertorForSOI.SQLs;
+using Interpol.ImportSZI;
 
 
 namespace ConvertorForSOI
@@ -33,11 +34,16 @@ namespace ConvertorForSOI
 
     public partial class MainWindow : Window
     {
+        // СОИ
         private string sourceFileRus = string.Empty; // Путь к файлу с источником данных c Рус - содержимым.
         private string sourceFileEng = string.Empty; // Путь к файлу с источником данных c Eng - содержимым.
         private string dataPathRus = string.Empty;   // Пукть к файлу где будет храниться результирующая таблица для Рус - содержимого.
         private string dataPathEng = string.Empty;   // Пукть к файлу где будет храниться результирующая таблица для Eng - содержимого.
         private string photoPath = string.Empty; // Путь к папке где лежат фотографии соответствующие данному файлу.
+
+        // СЗИ
+        private FileInfo SourceFileInterpol { get; set; } // Путь к файлу с источником данных c Interpol - содержимым.
+
 
         private BackgroundWorker bw = new BackgroundWorker();
         Popup pop = new Popup();
@@ -126,8 +132,6 @@ namespace ConvertorForSOI
             MessageBoxButton buttons = MessageBoxButton.OKCancel;
             MessageBoxImage icon = MessageBoxImage.Information;
             MessageBoxResult defaultResult = MessageBoxResult.OK;
-            //MessageBoxOptions options = MessageBoxOptions.RtlReading;
-            // Show message box
             MessageBoxResult result = MessageBox.Show(message, caption, buttons, icon, defaultResult);
             if (result.ToString() == "OK")
             {
@@ -158,11 +162,16 @@ namespace ConvertorForSOI
             }
         }
 
+        /// <summary>
+        /// Вкл/выкл прогрессбара и кнопок
+        /// </summary>
+        /// <param name="isWorking"></param>
         private void WorkingStatus(bool isWorking)
         {
             if (isWorking)
             {
-                btnOK.Visibility = Visibility.Hidden;
+                btnOK.IsEnabled = false;
+                btnOKSZI.IsEnabled = false;
                 btnAddPhotos.IsEnabled = false;
                 btnAddWTS.IsEnabled = false;
                 btnInitiatorsList.IsEnabled = false;
@@ -174,12 +183,12 @@ namespace ConvertorForSOI
                 btnTruncateTemps.IsEnabled = false;
                 checkBox_IsMissing.IsEnabled = false;
                 progressBar.Visibility = Visibility.Visible;
-                label1.Visibility = Visibility.Visible;
-                label1.Content = "Идет загрузка данных, Пожалуйста подождите.";
+                label1.Visibility = Visibility.Hidden;
             }
             else
             {
-                btnOK.Visibility = Visibility.Visible;
+                btnOK.IsEnabled = true;
+                btnOKSZI.IsEnabled = true;
                 btnAddPhotos.IsEnabled = true;
                 btnAddWTS.IsEnabled = true;
                 btnInitiatorsList.IsEnabled = true;
@@ -197,6 +206,7 @@ namespace ConvertorForSOI
 
                 checkBox_IsMissing.IsEnabled = true;
                 progressBar.Visibility = Visibility.Hidden;
+                label1.Visibility = Visibility.Visible;
                 label1.Content = "Если ошибок не было, следуйте этапам ниже...";
             }
             App.Current.MainWindow.InvalidateVisual();
@@ -206,7 +216,6 @@ namespace ConvertorForSOI
         // Клик по кнопке "Загрузить".
         private void btnOK_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: вернуть сообщение что данные загружены, не отображается прогрес бар после перехода на Thread
             // Запускаем прогресс бар. 
             WorkingStatus(true);
 
@@ -363,6 +372,56 @@ namespace ConvertorForSOI
             else
             {
                 MessageBox.Show("Все необходимые типы розыска имеются в БД!", "OK", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        // Клик по кнопке "Загрузить в СЗИ".
+        private void BtnOKSZI_Click(object sender, RoutedEventArgs e)
+        {
+            // Запускаем прогресс бар. 
+            WorkingStatus(true);
+
+            System.Threading.Tasks.Task.Factory.StartNew(() =>
+            {
+                //this will call in background thread
+                SZIInterpolImport();
+            }).ContinueWith(t =>
+            {
+                // Вертаем в зад наши контролы
+                WorkingStatus(false);
+            }, System.Threading.Tasks.TaskScheduler.FromCurrentSynchronizationContext());
+
+        }
+
+        private void SZIInterpolImport()
+        {
+            if (SourceFileInterpol == null)
+            {
+                MessageBox.Show("Файл не выбран!");
+                return;
+            }
+
+            Interpol.ImportSZI.Convertor convertor = new Interpol.ImportSZI.Convertor(SourceFileInterpol);
+        }
+
+        /// <summary>
+        /// Клик по "Источник данных - Интерпол".
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MenuItemSourceInterpol_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            if (!string.IsNullOrWhiteSpace(Config.SourceFolder))
+            {
+                ofd.InitialDirectory = Config.SourceFolder;
+            }
+            ofd.Filter = string.Format($"Файлы CSV (*.csv) | *.csv");
+            ofd.CheckFileExists = true;
+            if (ofd.ShowDialog() == true)
+            {
+                SourceFileInterpol = new FileInfo(ofd.FileName);
+                Config.SourceFolder = ofd.FileName;
             }
         }
     }
