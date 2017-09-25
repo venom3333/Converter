@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using Npgsql;
 using NpgsqlTypes;
+using GenericParsing;
 
 namespace Interpol.ImportSZI
 {
@@ -14,10 +15,14 @@ namespace Interpol.ImportSZI
 
         protected FileInfo ImportFile { get; set; }
 
+
+
         public Convertor(FileInfo fileInfo)
         {
             ImportFile = fileInfo;
         }
+
+
 
         /*
         private bool LogInsert()
