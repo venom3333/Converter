@@ -46,9 +46,9 @@ namespace ConvertorForSOI
         public MainWindow()
         {
             InitializeComponent();
-			//var aa = ConfigurationManager.AppSettings;
-			// включаем кнопку Truncate Real если тестовая машина!
-			if (ConfigurationManager.ConnectionStrings["Nake_data"].ConnectionString.Contains("Data Source=194.168.0.140"))
+            //var aa = ConfigurationManager.AppSettings;
+            // включаем кнопку Truncate Real если тестовая машина!
+            if (ConfigurationManager.ConnectionStrings["Nake_data"].ConnectionString.Contains("Data Source=194.168.0.140"))
             {
                 btnTruncateReal.IsEnabled = true;
             }
@@ -64,7 +64,7 @@ namespace ConvertorForSOI
         private void miSourceRus_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog ofd = new OpenFileDialog();
-            
+
             if (!string.IsNullOrWhiteSpace(Config.SourceFolder))
             {
                 ofd.InitialDirectory = Config.SourceFolder;
@@ -151,8 +151,6 @@ namespace ConvertorForSOI
             MessageBoxButton buttons = MessageBoxButton.OKCancel;
             MessageBoxImage icon = MessageBoxImage.Information;
             MessageBoxResult defaultResult = MessageBoxResult.OK;
-            //MessageBoxOptions options = MessageBoxOptions.RtlReading;
-            // Show message box
             MessageBoxResult result = MessageBox.Show(message, caption, buttons, icon, defaultResult);
             if (result.ToString() == "OK")
             {
@@ -160,78 +158,77 @@ namespace ConvertorForSOI
             }
         }
 
+        private void WorkingStatus(bool isWorking)
+        {
+            if (isWorking)
+            {
+                btnOK.Visibility = Visibility.Hidden;
+                btnAddPhotos.IsEnabled = false;
+                btnAddWTS.IsEnabled = false;
+                btnInitiatorsList.IsEnabled = false;
+                btnInitiatorsListDB.IsEnabled = false;
+                btnOK.IsEnabled = false;
+                btnSTList.IsEnabled = false;
+                btnSTListDB.IsEnabled = false;
+                btnTruncateReal.IsEnabled = false;
+                btnTruncateTemps.IsEnabled = false;
+                checkBox_IsMissing.IsEnabled = false;
+                progressBar.Visibility = Visibility.Visible;
+                label1.Visibility = Visibility.Visible;
+                label1.Content = "Идет загрузка данных, Пожалуйста подождите.";
+            }
+            else
+            {
+                btnOK.Visibility = Visibility.Visible;
+                btnAddPhotos.IsEnabled = true;
+                btnAddWTS.IsEnabled = true;
+                btnInitiatorsList.IsEnabled = true;
+                btnInitiatorsListDB.IsEnabled = true;
+                btnOK.IsEnabled = true;
+                btnSTList.IsEnabled = true;
+                btnSTListDB.IsEnabled = true;
+                btnTruncateTemps.IsEnabled = true;
+
+                // включаем кнопку Truncate Real если тестовая машина!
+                if (ConfigurationManager.ConnectionStrings["Nake_data"].ConnectionString.Contains("Data Source=194.168.0.140"))
+                {
+                    btnTruncateReal.IsEnabled = true;
+                }
+
+                checkBox_IsMissing.IsEnabled = true;
+                progressBar.Visibility = Visibility.Hidden;
+                label1.Content = "Если ошибок не было, следуйте этапам ниже...";
+            }
+            App.Current.MainWindow.InvalidateVisual();
+            App.Current.MainWindow.UpdateLayout();
+        }
+
         // Клик по кнопке "Загрузить".
         private void btnOK_Click(object sender, RoutedEventArgs e)
         {
             // TODO: вернуть сообщение что данные загружены, не отображается прогрес бар после перехода на Thread
             // Запускаем прогресс бар. 
+            WorkingStatus(true);
 
             Dictionary<string, string> args = new Dictionary<string, string>();
             args.Add("isMissing", checkBox_IsMissing.IsChecked.ToString().ToLower());
 
-            //List<string> args = new List<string>();
-            //args.Add(dataPathRus);
-            //args.Add(photoPath);
-            //args.Add(checkBox_IsMissing.IsChecked.ToString().ToLower());
+            System.Threading.Tasks.Task.Factory.StartNew(() =>
+            {
+                //this will call in background thread
+                worker_DoWork(args);
+            }).ContinueWith(t =>
+            {
+                // Вертаем в зад наши контролы
+                WorkingStatus(false);
+            }, System.Threading.Tasks.TaskScheduler.FromCurrentSynchronizationContext());
 
-            btnOK.Visibility = Visibility.Hidden;
-            progressBar.Visibility = Visibility.Visible;
-            label1.Visibility = Visibility.Visible;
-            label1.Content = "Идет загрузка данных, Пожалуйста подождите.";
-
-            //App.Current.MainWindow.InvalidateVisual();
-            //App.Current.MainWindow.UpdateLayout();
-
-            // Удалить файлы с информацией от предыдущей загрузки.
-            ParseHelper.DeleteInfoFiles();
-
-            // Делаем кнопку "Загрузить данные во временные таблицы" недоступной.
-            btnAddPhotos.IsEnabled = true;                                          // Вся приблуда ниже для выполнения программы в параллельном потоке:
-            //BackgroundWorker worker = new BackgroundWorker();                       // создается экземпляр класса BackgroundWorker для этого
-
-            // Стартуем трэд
-            Thread t = new Thread(() => worker_DoWork(args));
-            // Включаем режим STA (для работы с клипборд)
-            t.SetApartmentState(ApartmentState.STA);
-
-            //progressBar.Visibility = System.Windows.Visibility.Visible;
-            //progressBar.InvalidateVisual();
-            //progressBar.UpdateLayout();
-            //btnOK.Visibility = Visibility.Hidden;
-            //label1.Visibility = System.Windows.Visibility.Hidden;
-
-            this.UpdateLayout();
-
-            // старт
-            t.Start();
-            // Ждем завершения трэда и выполним все что потом
-            // t.Join();
-
-            //label1.Content = e.Result;
-            //progressBar.Visibility = System.Windows.Visibility.Hidden;
-            //btnOK.Visibility = Visibility.Visible;
-            //label1.Visibility = System.Windows.Visibility.Visible;
-            //worker.WorkerReportsProgress = true;                                    // сообщать о ходе выполнения
-            //worker.ProgressChanged += worker_ProgressChanged;                       // происходит при вызове ReportProgress (пока что не работает)
-            ////worker.DoWork += worker_DoWork;                                         // происходит при вызове RunWorkerAsync
-            //worker.RunWorkerCompleted += worker_RunWorkerCompleted;                 // происходит, когда фоновая операция завершена, была отменена или вызвала исключение
-            //worker.RunWorkerAsync(args);                                       // собственно сам запуск выполнения фоновой 
-        }
-
-        void worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-
-        }
-
-        void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            label1.Content = e.Result;
-            progressBar.Visibility = System.Windows.Visibility.Hidden;
-            label1.Visibility = System.Windows.Visibility.Visible;
         }
 
         void worker_DoWork(Dictionary<string, string> args)
         {
+            // Удалить файлы с информацией от предыдущей загрузки.
+            ParseHelper.DeleteInfoFiles();
             // Очищаем список ненайденных типов розыска и инициаторов
             ParseHelper.ClearMissedLists();
 
