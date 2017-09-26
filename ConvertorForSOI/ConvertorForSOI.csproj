@@ -151,9 +151,9 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Interpol\Interpol.csproj">
+    <ProjectReference Include="..\Interpol\SZI.csproj">
       <Project>{6b3f45e4-0916-40c0-826b-8e84612b604c}</Project>
-      <Name>Interpol</Name>
+      <Name>SZI</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

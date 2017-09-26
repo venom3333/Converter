@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.26430.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertorForSOI", "ConvertorForSOI\ConvertorForSOI.csproj", "{7A016664-AE0F-4488-B942-54F36F308C18}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Interpol", "Interpol\Interpol.csproj", "{6B3F45E4-0916-40C0-826B-8E84612B604C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SZI", "Interpol\SZI.csproj", "{6B3F45E4-0916-40C0-826B-8E84612B604C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

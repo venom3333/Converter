@@ -23,7 +23,7 @@ using System.Windows.Controls.Primitives;
 using System.IO;
 using System.Configuration;
 using ConvertorForSOI.SQLs;
-using Interpol.ImportSZI;
+using SZI.Import;
 
 
 namespace ConvertorForSOI
@@ -42,7 +42,7 @@ namespace ConvertorForSOI
         private string photoPath = string.Empty; // Путь к папке где лежат фотографии соответствующие данному файлу.
 
         // СЗИ
-        private FileInfo SourceFileInterpol { get; set; } // Путь к файлу с источником данных c Interpol - содержимым.
+        private FileInfo SourceFileInterpol { get; set; } // Путь к файлу с источником данных c SZI - содержимым.
 
 
         private BackgroundWorker bw = new BackgroundWorker();
@@ -401,7 +401,7 @@ namespace ConvertorForSOI
                 return;
             }
 
-            Interpol.ImportSZI.Convertor convertor = new Interpol.ImportSZI.Convertor(SourceFileInterpol);
+            SZI.Import.Convertor convertor = new SZI.Import.Convertor(SourceFileInterpol);
         }
 
         /// <summary>

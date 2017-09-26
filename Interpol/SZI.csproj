@@ -7,8 +7,8 @@
     <ProjectGuid>{6B3F45E4-0916-40C0-826B-8E84612B604C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Interpol</RootNamespace>
-    <AssemblyName>Interpol</AssemblyName>
+    <RootNamespace>SZI</RootNamespace>
+    <AssemblyName>SZI</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -50,8 +50,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ImportSZI\Convertor.cs" />
-    <Compile Include="ImportSZI\Mapping.cs" />
+    <Compile Include="Import\Convertor.cs" />
+    <Compile Include="Import\Mapping\DataType.cs" />
+    <Compile Include="Import\Mapping\ColumnItem.cs" />
+    <Compile Include="Import\Mapping\Formula.cs" />
+    <Compile Include="Import\Mapping\FormulaOperator.cs" />
+    <Compile Include="Import\Mapping\ParseLogic.cs" />
+    <Compile Include="Import\Templates\FTF.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -7,7 +7,7 @@ using Npgsql;
 using NpgsqlTypes;
 using GenericParsing;
 
-namespace Interpol.ImportSZI
+namespace SZI.Import
 {
     public class Convertor
     {
