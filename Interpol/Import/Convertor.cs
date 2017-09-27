@@ -60,10 +60,36 @@ namespace SZI.Import
             // Наполняем данные для импорта
             FillDataForImport();
 
+            // Генерация запросов и инсерт в БД
+            InsertData();
+
             // Набираем датасет в соответствии с используемыми таблицами
             // FillDataSet();
 
             // Апдейтим Датасет в соответствии с импортируемыми данными
+        }
+
+        private void InsertData()
+        {
+            // Общий цикл
+            for (int i = 0; i < ImportData.MainTable.Count; i++)
+            {
+                // Составление запроса
+
+                // Инсерт строки в основную таблицу
+
+                // Получение крайнего ID инсерта выше
+
+                // Миницикл связанных таблиц
+                foreach (var additionalTable in ImportData.AdditionalTables)
+                {
+                    // Составление запроса
+
+                    // если ColumnType = DataType.MainObjectId, то ComputedValue = вычисленный ID вставки в основную таблицу
+                }
+
+
+            }
         }
 
         /// <summary>
@@ -72,7 +98,86 @@ namespace SZI.Import
         private void FillDataForImport()
         {
             // Читаем файл, парсим, наполняем ImportData
+            // Инициализация объекта для данных
+            ImportData = new ImportData
+            {
+                MainTable = new List<RowItem>(),
+                AdditionalTables = new List<List<RowItem>>()
+            };
 
+            // Добавляем нужное кол-во таблиц в ImportData.AdditionalTables
+            for (int i = 0; i < Template.AdditionalTablesRows.Count; i++)
+            {
+                ImportData.AdditionalTables.Add(new List<RowItem>());
+            }
+
+
+            using (GenericParser parser = new GenericParser())
+            {
+                parser.SetDataSource(ImportFile.FullName);
+
+                parser.ColumnDelimiter = ';';
+                parser.FirstRowHasHeader = true;
+                parser.SkipStartingDataRows = 0;
+                parser.MaxBufferSize = 4096;
+                parser.MaxRows = 20000;
+
+                while (parser.Read())
+                {
+                    // Наполняем данные + параллельно парсим строку csv на значения если нужно
+
+                    /// Основная таблица ///
+                    // Инициализация строки
+                    var newMainRow = new RowItem
+                    {
+                        TableName = Template.MainTableRow.TableName,
+                        RowTemplate = new List<ColumnItem>()
+                    };
+
+                    // Набор столбцов в строку (из файла)
+                    foreach (var column in Template.MainTableRow.RowTemplate.Where(c => c.FileColumnName != null))
+                    {
+                        string rawValue = parser[column.FileColumnName];
+                        newMainRow.RowTemplate.Add(new ColumnItem(column, rawValue));
+                    }
+
+                    // Набор столбцов в строку (остальные)
+                    foreach (var column in Template.MainTableRow.RowTemplate.Where(c => c.FileColumnName == null))
+                    {
+                        newMainRow.RowTemplate.Add(new ColumnItem(column, newMainRow));
+                    }
+
+                    // Добавление строки
+                    ImportData.MainTable.Add(newMainRow);
+
+                    /// Связанные таблицы ///
+                    // Наполняем строки в каждой по очереди
+                    for (int i = 0; i < Template.AdditionalTablesRows.Count; i++)
+                    {
+                        var newAdditionalRow = new RowItem
+                        {
+                            TableName = Template.AdditionalTablesRows[i].TableName,
+                            RowTemplate = new List<ColumnItem>()
+                        };
+
+                        // Набор столбцов в строку (из файла)
+                        foreach (var column in Template.AdditionalTablesRows[i].RowTemplate.Where(c => c.FileColumnName != null))
+                        {
+                            string rawValue = parser[column.FileColumnName];
+                            newAdditionalRow.RowTemplate.Add(new ColumnItem(column, rawValue));
+                        }
+
+                        // Набор столбцов в строку (остальные)
+                        foreach (var column in Template.AdditionalTablesRows[i].RowTemplate.Where(c => c.FileColumnName == null))
+                        {
+                            newAdditionalRow.RowTemplate.Add(new ColumnItem(column, newMainRow));
+                        }
+
+                        // добавление строки
+                        ImportData.AdditionalTables[i].Add(newAdditionalRow);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -91,7 +196,7 @@ namespace SZI.Import
         {
             DataSet = new DataSet();
             // основная таблица
-            NpgsqlDataAdapter mainTableAdapter = new NpgsqlDataAdapter($"SELECT * FROM {Template.MainTableRow.TableName}", Connection);           
+            NpgsqlDataAdapter mainTableAdapter = new NpgsqlDataAdapter($"SELECT * FROM {Template.MainTableRow.TableName}", Connection);
             mainTableAdapter.Fill(DataSet, Template.MainTableRow.TableName);
 
             // Связанные таблицы

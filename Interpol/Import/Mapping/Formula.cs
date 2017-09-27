@@ -21,7 +21,7 @@ namespace SZI.Import.Mapping
         /// <summary>
         /// Разделитель при конкатенации / сплите
         /// </summary>
-        public string[] Separator;
+        public string[] Separator { get; set; }
 
         /// <summary>
         /// Дополнительный указатель, где это необходимо (например при операции single, указывает на индекс распарсенной множественной информации, такой как ФИО и т.п.)

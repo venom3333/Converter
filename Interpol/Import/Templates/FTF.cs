@@ -123,7 +123,7 @@ namespace SZI.Import.Templates
                 {
                     ColumnType = DataType.IdReference,
                     TableColumnName = "objectsource_id",
-                    ComputedValue = "10000004"
+                    RawValue = "10000004"
                 },
 
                 // 11. Список "ИТБ"
@@ -131,7 +131,7 @@ namespace SZI.Import.Templates
                 {
                     ColumnType = DataType.IdReference,
                     TableColumnName = "belongs_to_id",
-                    ComputedValue = "2"
+                    RawValue = "2"
                 },
 
                 // 12. dtype = "Liczo"
@@ -139,7 +139,15 @@ namespace SZI.Import.Templates
                 {
                     ColumnType = DataType.ExactText,
                     TableColumnName = "dtype",
-                    ComputedValue = "Liczo"
+                    RawValue = "Liczo"
+                },
+
+                // 13. objectstate = "PUBLISHED"
+                new ColumnItem
+                {
+                    ColumnType = DataType.ExactText,
+                    TableColumnName = "objectstate",
+                    RawValue = "PUBLISHED"
                 }
             }
             };
@@ -158,7 +166,7 @@ namespace SZI.Import.Templates
                 {
                     ColumnType = DataType.ExactText,
                     TableColumnName = "target_type",
-                    ComputedValue = "liczo"
+                    RawValue = "liczo"
                 },
 
                 // 2. target_id
@@ -173,7 +181,7 @@ namespace SZI.Import.Templates
                 {
                     ColumnType = DataType.IdReference,
                     TableColumnName = "dictionaryitem_id",
-                    ComputedValue = "14"
+                    RawValue = "14"
                 }
                 }
             });
