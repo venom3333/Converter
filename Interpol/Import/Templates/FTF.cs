@@ -7,19 +7,15 @@ using SZI.Import.Mapping;
 
 namespace SZI.Import.Templates
 {
-    /// <summary>
-    /// Шаблон для файла FTF
-    /// </summary>
-    public class FTF
+    public class FTF : Template
     {
-        /// <summary>
-        /// Список строк (вхождений/лиц)
-        /// </summary>
-        public List<ColumnItem> TemplateRow { get; set; }
-
         public FTF()
         {
-            TemplateRow = new List<ColumnItem>
+            /// Основная таблица
+            MainTableRow = new RowItem
+            {
+                TableName = "liczo",
+                RowTemplate = new List<ColumnItem>
             {
                 //////////////// Из файла ////////////////
                 // 1. Фамилия_ru
@@ -27,7 +23,6 @@ namespace SZI.Import.Templates
                 {
                     ColumnType = DataType.PlainText,
                     FileColumnName = "Фамилия_ru",
-                    TableName = "liczo",
                     TableColumnName = "familiya_ru",
                     RawValue = string.Empty
                 },
@@ -37,7 +32,6 @@ namespace SZI.Import.Templates
                 {
                     ColumnType = DataType.PlainText,
                     FileColumnName = "Имя_ru",
-                    TableName = "liczo",
                     TableColumnName = "imya_ru",
                     RawValue = string.Empty
                 },
@@ -47,7 +41,6 @@ namespace SZI.Import.Templates
                 {
                     ColumnType = DataType.PlainText,
                     FileColumnName = "Фамилия_en",
-                    TableName = "liczo",
                     TableColumnName = "familiya_en",
                     RawValue = string.Empty
                 },
@@ -57,7 +50,6 @@ namespace SZI.Import.Templates
                 {
                     ColumnType = DataType.PlainText,
                     FileColumnName = "Имя_en",
-                    TableName = "liczo",
                     TableColumnName = "imya_en",
                     RawValue = string.Empty
                 },
@@ -67,7 +59,6 @@ namespace SZI.Import.Templates
                 {
                     ColumnType = DataType.Date,
                     FileColumnName = "Дата рождения",
-                    TableName = "liczo",
                     TableColumnName = "data_rozhdeniya",
                     RawValue = string.Empty
                 },
@@ -77,7 +68,6 @@ namespace SZI.Import.Templates
                 {
                     ColumnType = DataType.PlainText,
                     FileColumnName = "Место рождения",
-                    TableName = "liczo",
                     TableColumnName = "mesto_rozhdeniya_text_en",
                     RawValue = string.Empty
                 },
@@ -87,7 +77,6 @@ namespace SZI.Import.Templates
                 {
                     ColumnType = DataType.PlainText,
                     FileColumnName = "Место рождения",
-                    TableName = "liczo",
                     TableColumnName = "mesto_rozhdeniya_text_en",
                     RawValue = "Search initiator: "
                 },
@@ -97,7 +86,6 @@ namespace SZI.Import.Templates
                 new ColumnItem
                 {
                     ColumnType = DataType.FormulaText,
-                    TableName = "liczo",
                     TableColumnName = "fullname_ru",
                     RawValue = string.Empty,
                     ColumnFormula = new Formula
@@ -116,7 +104,6 @@ namespace SZI.Import.Templates
                 new ColumnItem
                 {
                     ColumnType = DataType.FormulaText,
-                    TableName = "liczo",
                     TableColumnName = "fullname_en",
                     RawValue = string.Empty,
                     ColumnFormula = new Formula
@@ -134,21 +121,62 @@ namespace SZI.Import.Templates
                 // 10. ID инициатора розыска из словаря (Генеральный секретариат Интерпола (ГС Интерпол))
                 new ColumnItem
                 {
-                    ColumnType = DataType.ExactIdReference,
-                    TableName = "liczo",
+                    ColumnType = DataType.IdReference,
                     TableColumnName = "objectsource_id",
-                    RawValue = "10000004",
                     ComputedValue = "10000004"
                 },
 
-                // TODO: Найти где это обозначается!!!
-                // 11. "Розыск по линии интерпола"
+                // 11. Список "ИТБ"
                 new ColumnItem
                 {
-                    ColumnType = DataType.ExactIdReference,
-                    TableName = "liczo",
+                    ColumnType = DataType.IdReference,
+                    TableColumnName = "belongs_to_id",
+                    ComputedValue = "2"
+                },
+
+                // 12. dtype = "Liczo"
+                new ColumnItem
+                {
+                    ColumnType = DataType.ExactText,
+                    TableColumnName = "dtype",
+                    ComputedValue = "Liczo"
                 }
+            }
             };
+
+            /// Связанные таблицы
+            AdditionalTablesRows = new List<RowItem>();
+
+            // basis_for_inclusion
+            AdditionalTablesRows.Add(new RowItem
+            {
+                TableName = "basis_for_inclusion",
+                RowTemplate = new List<ColumnItem>
+                {
+                    // 1. target_type
+                new ColumnItem
+                {
+                    ColumnType = DataType.ExactText,
+                    TableColumnName = "target_type",
+                    ComputedValue = "liczo"
+                },
+
+                // 2. target_id
+                new ColumnItem
+                {
+                    ColumnType = DataType.MainObjectId,
+                    TableColumnName = "target_id"
+                },
+
+                // 3. dictionary_item
+                new ColumnItem
+                {
+                    ColumnType = DataType.IdReference,
+                    TableColumnName = "dictionaryitem_id",
+                    ComputedValue = "14"
+                }
+                }
+            });
         }
     }
 }

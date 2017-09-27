@@ -17,11 +17,6 @@ namespace SZI.Import.Mapping
         public string FileColumnName { get; set; }
 
         /// <summary>
-        /// Название таблицы
-        /// </summary>
-        public string TableName { get; set; }
-
-        /// <summary>
         /// Название столбца таблицы
         /// </summary>
         public string TableColumnName { get; set; }

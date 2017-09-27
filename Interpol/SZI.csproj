@@ -40,6 +40,7 @@
       <HintPath>..\packages\Npgsql.3.2.5\lib\net451\Npgsql.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Threading.Tasks.Extensions, Version=4.1.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Threading.Tasks.Extensions.4.4.0\lib\portable-net45+win8+wp8+wpa81\System.Threading.Tasks.Extensions.dll</HintPath>
@@ -55,8 +56,11 @@
     <Compile Include="Import\Mapping\ColumnItem.cs" />
     <Compile Include="Import\Mapping\Formula.cs" />
     <Compile Include="Import\Mapping\FormulaOperator.cs" />
+    <Compile Include="Import\Mapping\ImportData.cs" />
     <Compile Include="Import\Mapping\ParseLogic.cs" />
+    <Compile Include="Import\Mapping\RowItem.cs" />
     <Compile Include="Import\Templates\FTF.cs" />
+    <Compile Include="Import\Templates\Template.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

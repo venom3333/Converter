@@ -26,6 +26,16 @@ namespace SZI.Import.Mapping
         /// <summary>
         /// ID, ссылающийся на объект другой таблицы, или просто целое число (В большинстве случаев предопределено для шаблона)
         /// </summary>
-        ExactIdReference,
+        IdReference,
+
+        /// <summary>
+        /// Точное значение текста
+        /// </summary>
+        ExactText,
+
+        /// <summary>
+        /// Id импортируемого объекта, присвоенное в основной таблице
+        /// </summary>
+        MainObjectId
     }
 }
