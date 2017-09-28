@@ -42,6 +42,11 @@ namespace SZI.Import.Mapping
         public string ComputedValue { get; set; }
 
         /// <summary>
+        /// Участвует ли поле для сравнения на дубликаты
+        /// </summary>
+        public bool ForCompare { get; set; }
+
+        /// <summary>
         /// Текущая строка (при необходимости)
         /// </summary>
         public RowItem CurentRow { get; set; }
@@ -62,7 +67,9 @@ namespace SZI.Import.Mapping
             ColumnType = columnTemplate.ColumnType;
             ColumnFormula = columnTemplate.ColumnFormula;
             TableColumnName = columnTemplate.TableColumnName;
-            RawValue = rawValue.Trim();
+            ForCompare = columnTemplate.ForCompare;
+
+            RawValue = ((columnTemplate.RawValue ?? "") + rawValue).Trim();
 
             ComputeValue();
         }
@@ -78,11 +85,9 @@ namespace SZI.Import.Mapping
             ColumnType = columnTemplate.ColumnType;
             ColumnFormula = columnTemplate.ColumnFormula;
             TableColumnName = columnTemplate.TableColumnName;
+            ForCompare = columnTemplate.ForCompare;
 
-            if (columnTemplate.RawValue != null)
-            {
-                RawValue = columnTemplate.RawValue.Trim();
-            }
+            RawValue = (columnTemplate.RawValue ?? "").Trim();
 
             CurentRow = currentRow;
 

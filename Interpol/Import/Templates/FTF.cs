@@ -14,26 +14,28 @@ namespace SZI.Import.Templates
             /// Основная таблица
             MainTableRow = new RowItem
             {
-                TableName = "liczo",
+                TableName = "public.liczo",
                 RowTemplate = new List<ColumnItem>
             {
                 //////////////// Из файла ////////////////
-                // 1. Фамилия_ru
+                // 1. Фамилия_ru (для сравнения на дубль)
                 new ColumnItem
                 {
                     ColumnType = DataType.PlainText,
                     FileColumnName = "Фамилия_ru",
                     TableColumnName = "familiya_ru",
-                    RawValue = string.Empty
+                    RawValue = string.Empty,
+                    ForCompare = true
                 },
 
-                // 2. Имя_ru
+                // 2. Имя_ru (для сравнения на дубль)
                 new ColumnItem
                 {
                     ColumnType = DataType.PlainText,
                     FileColumnName = "Имя_ru",
                     TableColumnName = "imya_ru",
-                    RawValue = string.Empty
+                    RawValue = string.Empty,
+                    ForCompare = true
                 },
 
                 // 3. Фамилия_en
@@ -54,13 +56,14 @@ namespace SZI.Import.Templates
                     RawValue = string.Empty
                 },
 
-                // 5. Дата рождения
+                // 5. Дата рождения (для сравнения на дубль)
                 new ColumnItem
                 {
                     ColumnType = DataType.Date,
                     FileColumnName = "Дата рождения",
                     TableColumnName = "data_rozhdeniya",
-                    RawValue = string.Empty
+                    RawValue = string.Empty,
+                    ForCompare = true
                 },
 
                 // 6. Место рождения
@@ -76,8 +79,8 @@ namespace SZI.Import.Templates
                 new ColumnItem
                 {
                     ColumnType = DataType.PlainText,
-                    FileColumnName = "Место рождения",
-                    TableColumnName = "mesto_rozhdeniya_text_en",
+                    FileColumnName = "Страна инициатор розыска",
+                    TableColumnName = "dopolnitelnaya_informacziya_en",
                     RawValue = "Search initiator: "
                 },
 
@@ -142,7 +145,15 @@ namespace SZI.Import.Templates
                     RawValue = "Liczo"
                 },
 
-                // 13. objectstate = "PUBLISHED"
+                // 13. Категория = "Террористы"
+                new ColumnItem
+                {
+                    ColumnType = DataType.IdReference,
+                    TableColumnName = "kategoriya_licza_id",
+                    RawValue = "1"
+                },
+
+                // 14. objectstate = "PUBLISHED"
                 new ColumnItem
                 {
                     ColumnType = DataType.ExactText,
@@ -155,10 +166,10 @@ namespace SZI.Import.Templates
             /// Связанные таблицы
             AdditionalTablesRows = new List<RowItem>();
 
-            // basis_for_inclusion
+            // basis_for_inclusion (розыск по линии интерпола) 
             AdditionalTablesRows.Add(new RowItem
             {
-                TableName = "basis_for_inclusion",
+                TableName = "public.basis_for_inclusion",
                 RowTemplate = new List<ColumnItem>
                 {
                     // 1. target_type
