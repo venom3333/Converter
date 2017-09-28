@@ -69,7 +69,7 @@ namespace SZI.Import.Mapping
             TableColumnName = columnTemplate.TableColumnName;
             ForCompare = columnTemplate.ForCompare;
 
-            RawValue = ((columnTemplate.RawValue ?? "") + rawValue).Trim();
+            RawValue = ((columnTemplate.RawValue ?? "") + rawValue).Trim().Replace("'", "''");
 
             ComputeValue();
         }
@@ -87,7 +87,7 @@ namespace SZI.Import.Mapping
             TableColumnName = columnTemplate.TableColumnName;
             ForCompare = columnTemplate.ForCompare;
 
-            RawValue = (columnTemplate.RawValue ?? "").Trim();
+            RawValue = (columnTemplate.RawValue ?? "").Trim().Replace("'", "''");
 
             CurentRow = currentRow;
 

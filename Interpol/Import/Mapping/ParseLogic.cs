@@ -42,7 +42,10 @@ namespace SZI.Import.Mapping
                 dateTime = new DateTime(int.Parse(date), 1, 1);
             }
 
-            result = dateTime.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString();
+            var timestamp = dateTime.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+
+            result = timestamp > int.MaxValue ? string.Empty : timestamp.ToString();
+
             return result;
         }
 

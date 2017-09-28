@@ -67,6 +67,7 @@ namespace SZI.Import
 
         private void InsertData()
         {
+            var start = DateTime.Now;
             int allRecords = ImportData.MainTable.Count;
             int doublesInFile = 0;
             int doublesInDB = 0;
@@ -108,7 +109,10 @@ namespace SZI.Import
 
                     /// Составление запроса
                     string mainQuery = GetInsertQueryMain(i);
-
+                    //if (mainQuery.Contains("253370764800"))
+                    //{
+                    //    var sdsd = 0;
+                    //}
                     // Инсерт строки в основную таблицу
                     NpgsqlCommand command = new NpgsqlCommand(mainQuery, Connection, transaction);
                     // Инсерт и получение крайнего ID
@@ -123,14 +127,20 @@ namespace SZI.Import
                         var rows = command.ExecuteNonQuery();
                     }
                 }
+                transaction.Commit();
             }
             catch (Exception ex)
             {
                 transaction.Rollback();
                 MessageBox.Show(ex.Message);
             }
-            transaction.Commit();
-            MessageBox.Show($"Всего записей: {allRecords}\nДублей в файле: {doublesInFile}\nДублей в БД: {doublesInDB}\nИмпортировано: {allRecords - doublesInFile - doublesInDB}");
+            var end = DateTime.Now;
+            MessageBox.Show($@"Всего записей: {allRecords}
+Дублей в файле: {doublesInFile}
+Дублей в БД: {doublesInDB}
+Импортировано: {allRecords - doublesInFile - doublesInDB}
+Старт: {start.ToString()}
+Финиш: {end.ToString()}");
         }
 
         /// <summary>
@@ -191,6 +201,11 @@ namespace SZI.Import
             // Перечисление столбцов
             for (int j = 0; j < ImportData.MainTable[i].RowTemplate.Count; j++)
             {
+                // Если дата пуста
+                if (ImportData.MainTable[i].RowTemplate[j].ColumnType == DataType.Date && string.IsNullOrWhiteSpace(ImportData.MainTable[i].RowTemplate[j].ComputedValue))
+                {
+                    continue;
+                }
                 query += $"{ImportData.MainTable[i].RowTemplate[j].TableColumnName}, ";
             }
 
@@ -204,6 +219,11 @@ namespace SZI.Import
             // Перечисление значений
             for (int j = 0; j < ImportData.MainTable[i].RowTemplate.Count; j++)
             {
+                // Если дата пуста
+                if (ImportData.MainTable[i].RowTemplate[j].ColumnType == DataType.Date && string.IsNullOrWhiteSpace(ImportData.MainTable[i].RowTemplate[j].ComputedValue))
+                {
+                    continue;
+                }
                 query += $"'{ImportData.MainTable[i].RowTemplate[j].ComputedValue}', ";
             }
 
@@ -229,7 +249,7 @@ namespace SZI.Import
                 existance = existance
                     .Where(ri => ri.RowTemplate
                         .Where(rt => rt.FileColumnName == checkItem.FileColumnName)
-                        .Where(rt => rt.ComputedValue == checkItem.ComputedValue).ToList().Count > 0).ToList();
+                        .Where(rt => rt.ComputedValue.ToUpper() == checkItem.ComputedValue.ToUpper()).ToList().Count > 0).ToList();
             }
 
             return existance.Count > 1 ? true : false;
@@ -253,8 +273,19 @@ namespace SZI.Import
                 {
                     continue;
                 }
-                query += $@"{column.TableColumnName} = '{column.ComputedValue}'
+
+                // Если поле Дата, то округляем до дней для сравнения
+                /*to_timestamp(data_rozhdeniya)::date = to_timestamp('836956800')::date*/
+                if (column.ColumnType == DataType.Date)
+                {
+                    query += $@"to_timestamp({column.TableColumnName})::date = to_timestamp('{column.ComputedValue}')::date
                             AND ";
+                }
+                else
+                {
+                    query += $@"upper({column.TableColumnName}) = upper('{column.ComputedValue}')
+                            AND ";
+                }
             }
 
             // убираем крайний "AND "
