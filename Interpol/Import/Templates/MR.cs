@@ -7,9 +7,9 @@ using SZI.Import.Mapping;
 
 namespace SZI.Import.Templates
 {
-    public class FTF : Template
+    public class MR : Template
     {
-        public FTF()
+        public MR()
         {
             /// Основная таблица
             MainTableRow = new RowItem
@@ -38,7 +38,17 @@ namespace SZI.Import.Templates
                     ForCompare = true
                 },
 
-                // 3. Фамилия_en
+                // 3. Отчество_ru (для сравнения на дубль)
+                new ColumnItem
+                {
+                    ColumnType = DataType.PlainText,
+                    FileColumnName = "Отчество_ru",
+                    TableColumnName = "otchestvo_ru",
+                    RawValue = string.Empty,
+                    ForCompare = true
+                },
+
+                // 4. Фамилия_en
                 new ColumnItem
                 {
                     ColumnType = DataType.PlainText,
@@ -47,7 +57,7 @@ namespace SZI.Import.Templates
                     RawValue = string.Empty
                 },
 
-                // 4. Имя_en
+                // 5. Имя_en
                 new ColumnItem
                 {
                     ColumnType = DataType.PlainText,
@@ -56,7 +66,7 @@ namespace SZI.Import.Templates
                     RawValue = string.Empty
                 },
 
-                // 5. Дата рождения (для сравнения на дубль)
+                // 6. Дата рождения (для сравнения на дубль)
                 new ColumnItem
                 {
                     ColumnType = DataType.Date,
@@ -66,22 +76,23 @@ namespace SZI.Import.Templates
                     ForCompare = true
                 },
 
-                // 6. Место рождения
+                // 6. Гражданство
                 new ColumnItem
                 {
-                    ColumnType = DataType.PlainText,
-                    FileColumnName = "Место рождения",
-                    TableColumnName = "mesto_rozhdeniya_text_en",
+                    ColumnType = DataType.Dictionary,
+                    DictionaryDType = "Grazhdanstva",
+                    FileColumnName = "гражданство",
+                    TableColumnName = "grazhdanstvo_id",
                     RawValue = string.Empty
                 },
 
-                // 7. Страна инициатор розыска
+                // 7. Дополнительная информация_en
                 new ColumnItem
                 {
                     ColumnType = DataType.PlainText,
-                    FileColumnName = "Страна инициатор розыска",
+                    FileColumnName = "Дополнительная информация_en",
                     TableColumnName = "dopolnitelnaya_informacziya_en",
-                    RawValue = "Search initiator: "
+                    RawValue = string.Empty
                 },
 
                 //////////////// С Формулой //////////////////
@@ -99,6 +110,7 @@ namespace SZI.Import.Templates
                         {
                             "Фамилия_ru",
                             "Имя_ru",
+                            "Отчество_ru"
                         }
                     }
                 },
@@ -121,14 +133,12 @@ namespace SZI.Import.Templates
                     }
                 },
 
-                // 10. ID инициатора розыска из словаря (Генеральный секретариат Интерпола (ГС Интерпол))
+                // 10. ID инициатора розыска (Генеральный секретариат Интерпола (ГС Интерпол))
                 new ColumnItem
                 {
-                    ColumnType = DataType.Dictionary,
-                    DictionaryTableName = "objectsource",
-                    DictionaryColumnName = "name_ru",
+                    ColumnType = DataType.IdReference,
                     TableColumnName = "objectsource_id",
-                    RawValue = "Генеральный секретариат Интерпола (ГС Интерпол)"
+                    RawValue = "10000007"
                 },
 
                 // 11. Список "ИТБ"
@@ -168,7 +178,7 @@ namespace SZI.Import.Templates
             /// Связанные таблицы
             AdditionalTablesRows = new List<RowItem>();
 
-            // basis_for_inclusion (розыск по линии интерпола) 
+            // basis_for_inclusion (Международный розыск) 
             AdditionalTablesRows.Add(new RowItem
             {
                 TableName = "public.basis_for_inclusion",
@@ -190,22 +200,58 @@ namespace SZI.Import.Templates
                 },
 
                 // 3. dictionary_item
-                //new ColumnItem
-                //{
-                //    ColumnType = DataType.IdReference,
-                //    TableColumnName = "dictionaryitem_id",
-                //    RawValue = "14"
-                //}
-
-                 // 3. dictionary_item
                 new ColumnItem
                 {
                     ColumnType = DataType.Dictionary,
                     DictionaryDType = "Basis_for_inclusion",
+                    FileColumnName = "Основание для включения",
                     TableColumnName = "dictionaryitem_id",
-                    RawValue = "Розыск по линии Интерпола"
+                    RawValue = string.Empty
                 }
                 }
+            });
+
+            // Фотографии
+            AdditionalTablesRows.Add(new RowItem
+            {
+                TableName = "public.media",
+                RowTemplate = new List<ColumnItem>
+                {
+                    // 1. target_type
+                new ColumnItem
+                {
+                    ColumnType = DataType.ExactText,
+                    TableColumnName = "target_type",
+                    RawValue = "liczo"
+                },
+
+                // 2. target_id
+                new ColumnItem
+                {
+                    ColumnType = DataType.MainObjectId,
+                    TableColumnName = "target_id"
+                },
+
+                new ColumnItem
+                {
+                    ColumnType = DataType.IdReference,
+                    TableColumnName = "media_type",
+                    RawValue = "2" // Фотография 
+                },
+
+                new ColumnItem
+                {
+                    ColumnType = DataType.Media,
+                    TableColumnName = "src_path",
+                },
+
+                new ColumnItem
+                {
+                    ColumnType = DataType.IdReference,
+                    TableColumnName = "weight",
+                    RawValue = "1"
+                }
+                } 
             });
         }
     }

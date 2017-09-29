@@ -47,6 +47,26 @@ namespace SZI.Import.Mapping
         public bool ForCompare { get; set; }
 
         /// <summary>
+        /// Значение поля dtype таблицы dictionaryitem (В случае словарного значения)
+        /// </summary>
+        public string DictionaryDType { get; set; }
+
+        /// <summary>
+        /// Наименование таблицы словаря (потому что гуано-код этот СЗИ)
+        /// </summary>
+        public string DictionaryTableName { get; set; }
+
+        /// <summary>
+        /// Наименование столбца словая (по той же причине, что и предыдущее свойство)
+        /// </summary>
+        public string DictionaryColumnName { get; set; }
+
+        /// <summary>
+        /// Идентификатор типа медиа контента (фото = 2)
+        /// </summary>
+        public int MediaId { get; set; }
+
+        /// <summary>
         /// Текущая строка (при необходимости)
         /// </summary>
         public RowItem CurentRow { get; set; }
@@ -68,6 +88,10 @@ namespace SZI.Import.Mapping
             ColumnFormula = columnTemplate.ColumnFormula;
             TableColumnName = columnTemplate.TableColumnName;
             ForCompare = columnTemplate.ForCompare;
+            DictionaryDType = columnTemplate.DictionaryDType;
+            DictionaryTableName = columnTemplate.DictionaryTableName;
+            DictionaryColumnName = columnTemplate.DictionaryColumnName;
+            MediaId = columnTemplate.MediaId;
 
             RawValue = ((columnTemplate.RawValue ?? "") + rawValue).Trim().Replace("'", "''");
 
@@ -86,6 +110,10 @@ namespace SZI.Import.Mapping
             ColumnFormula = columnTemplate.ColumnFormula;
             TableColumnName = columnTemplate.TableColumnName;
             ForCompare = columnTemplate.ForCompare;
+            DictionaryDType = columnTemplate.DictionaryDType;
+            DictionaryTableName = columnTemplate.DictionaryTableName;
+            DictionaryColumnName = columnTemplate.DictionaryColumnName;
+            MediaId = columnTemplate.MediaId;
 
             RawValue = (columnTemplate.RawValue ?? "").Trim().Replace("'", "''");
 
@@ -107,9 +135,13 @@ namespace SZI.Import.Mapping
                 case DataType.FormulaText:
                     ComputedValue = ParseLogic.ParseFormulaText(this);
                     break;
-                case DataType.MainObjectId:
+                case DataType.MainObjectId: // Будет обработано на стадии инсерта
                     break;
-
+                case DataType.Dictionary:
+                    ComputedValue = ParseLogic.ParseDictionary(this);
+                    break;
+                case DataType.Media: // Будет обработано на стадии инсерта
+                    break;
                 case DataType.ExactText:
                 case DataType.IdReference:
                 case DataType.PlainText:

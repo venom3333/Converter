@@ -36,6 +36,16 @@ namespace SZI.Import.Mapping
         /// <summary>
         /// Id импортируемого объекта, присвоенное в основной таблице
         /// </summary>
-        MainObjectId
+        MainObjectId,
+
+        /// <summary>
+        /// Фотография
+        /// </summary>
+        Media,
+
+        /// <summary>
+        /// Значение из словаря
+        /// </summary>
+        Dictionary,
     }
 }

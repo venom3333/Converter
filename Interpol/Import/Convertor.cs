@@ -32,11 +32,6 @@ namespace SZI.Import
         protected FileInfo ImportFile { get; set; }
 
         /// <summary>
-        /// Датасет используемых таблиц
-        /// </summary>
-        protected DataSet DataSet { get; set; }
-
-        /// <summary>
         /// Шаблон для импортируемого файла
         /// </summary>
         protected Template Template { get; set; }
@@ -51,20 +46,29 @@ namespace SZI.Import
         {
             ImportFile = fileInfo;
 
-            ConnectionString = "Server=194.168.0.117;Port=5432;Database=freska;User Id=postgres;Password=%CW_&1|t;";
+            //ConnectionString = "Server=194.168.0.117;Port=5432;Database=freska_cib;User Id=postgres;Password=%CW_&1|t;";
+            //ConnectionString = "Server=194.168.0.117;Port=5432;Database=freska;User Id=postgres;Password=%CW_&1|t;";
+            ConnectionString = ConfigurationManager.ConnectionStrings["freska"].ConnectionString;
 
             Connection = new NpgsqlConnection(ConnectionString);
 
             // Выбираем темплейт для импортированного файла
             SelectTemplate();
+            if (Template == null)
+            {
+                return;
+            }
 
             // Наполняем данные для импорта
-            FillDataForImport();
+            FillImportData();
 
             // Генерация запросов и инсерт в БД
             InsertData();
         }
 
+        /// <summary>
+        /// Запись в базу
+        /// </summary>
         private void InsertData()
         {
             var start = DateTime.Now;
@@ -122,7 +126,12 @@ namespace SZI.Import
                     foreach (var additionalTable in ImportData.AdditionalTables)
                     {
                         // Составление запроса
-                        string additionalQuery = GetInsertQueryAdditional(additionalTable[i], mainId);
+                        string additionalQuery = GetInsertQueryAdditional(additionalTable[i], mainId, i);
+                        // Если запрос не составлен
+                        if (additionalQuery == string.Empty)
+                        {
+                            continue;
+                        }
                         command = new NpgsqlCommand(additionalQuery, Connection, transaction);
                         var rows = command.ExecuteNonQuery();
                     }
@@ -148,7 +157,7 @@ namespace SZI.Import
         /// </summary>
         /// <param name="i">Индекс объекта для вставки</param>
         /// <returns></returns>
-        private string GetInsertQueryAdditional(RowItem rowItem, int mainId)
+        private string GetInsertQueryAdditional(RowItem rowItem, int mainId, int counter)
         {
             // Начало
             string query = $@"
@@ -175,6 +184,17 @@ namespace SZI.Import
                 {
                     rowItem.RowTemplate[j].ComputedValue = mainId.ToString();
                 }
+                // Обработка медиа контента
+                else if(rowItem.RowTemplate[j].ColumnType == DataType.Media)
+                {
+                    string fullName = ImportData.MainTable[counter].RowTemplate.FirstOrDefault(rt => rt.TableColumnName == "fullname_ru").ComputedValue;
+                    rowItem.RowTemplate[j].ComputedValue = ParseLogic.ParseMedia(ImportFile, fullName);
+                    if(rowItem.RowTemplate[j].ComputedValue == string.Empty)
+                    {
+                        return string.Empty;
+                    }
+                }
+
                 query += $"'{rowItem.RowTemplate[j].ComputedValue}', ";
             }
 
@@ -303,7 +323,7 @@ namespace SZI.Import
         /// <summary>
         /// Читаем файл, парсим, наполняем ImportData
         /// </summary>
-        private void FillDataForImport()
+        private void FillImportData()
         {
             // Читаем файл, парсим, наполняем ImportData
             // Инициализация объекта для данных
@@ -394,7 +414,25 @@ namespace SZI.Import
         /// </summary>
         void SelectTemplate()
         {
-            Template = new FTF();
+            try
+            {
+                if (ImportFile.Name.Contains("FTF"))
+                {
+                    Template = new FTF();
+                }
+                else if (ImportFile.Name.Contains("MR"))
+                {
+                    Template = new MR();
+                }
+                else
+                {
+                    throw new Exception("Шаблон файла не распознан!");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         public void Dispose()

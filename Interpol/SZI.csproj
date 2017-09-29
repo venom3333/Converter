@@ -60,6 +60,7 @@
     <Compile Include="Import\Mapping\ImportData.cs" />
     <Compile Include="Import\Mapping\ParseLogic.cs" />
     <Compile Include="Import\Mapping\RowItem.cs" />
+    <Compile Include="Import\Templates\MR.cs" />
     <Compile Include="Import\Templates\FTF.cs" />
     <Compile Include="Import\Templates\Template.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
