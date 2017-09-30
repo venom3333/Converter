@@ -26,6 +26,11 @@ namespace SZI.Import.Mapping
         /// <returns></returns>
         internal static string ParseDate(string date)
         {
+            if (string.IsNullOrWhiteSpace(date))
+            {
+                return string.Empty;
+            }
+
             string result = string.Empty;
             char separator = '.';
             DateTime dateTime = DateTime.Now;

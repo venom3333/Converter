@@ -113,11 +113,11 @@ namespace SZI.Import
 
                     /// Составление запроса
                     string mainQuery = GetInsertQueryMain(i);
-                    //if (mainQuery.Contains("253370764800"))
+                    //if (mainQuery.Contains("1506770"))
                     //{
                     //    var sdsd = 0;
                     //}
-                    // Инсерт строки в основную таблицу
+                    //// Инсерт строки в основную таблицу
                     NpgsqlCommand command = new NpgsqlCommand(mainQuery, Connection, transaction);
                     // Инсерт и получение крайнего ID
                     int mainId = (int)command.ExecuteScalar();
