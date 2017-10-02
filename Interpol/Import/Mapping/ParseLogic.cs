@@ -177,7 +177,10 @@ namespace SZI.Import.Mapping
             string generatedFileName = CalculateMD5Hash(fileName + new Guid().ToString()) + mediaFile.Extension;
 
             // Копируем файл с новым именем в новую папку
-            File.Copy(Path.Combine(photoDir, fileName), Path.Combine(newPhotoDir, generatedFileName));
+            if (!File.Exists(Path.Combine(newPhotoDir, generatedFileName)))
+            {
+                File.Copy(Path.Combine(photoDir, fileName), Path.Combine(newPhotoDir, generatedFileName));
+            }
 
             result = generatedFileName;
             return result; // сгенерированное имя файла

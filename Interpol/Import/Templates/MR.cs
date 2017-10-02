@@ -66,7 +66,17 @@ namespace SZI.Import.Templates
                     RawValue = string.Empty
                 },
 
-                // 6. Дата рождения (для сравнения на дубль)
+                // 6. Отчество_ru (для сравнения на дубль)
+                new ColumnItem
+                {
+                    ColumnType = DataType.PlainText,
+                    FileColumnName = "Отчество_en",
+                    TableColumnName = "otchestvo_en",
+                    RawValue = string.Empty,
+                    ForCompare = true
+                },
+
+                // 7. Дата рождения (для сравнения на дубль)
                 new ColumnItem
                 {
                     ColumnType = DataType.Date,
@@ -76,7 +86,7 @@ namespace SZI.Import.Templates
                     ForCompare = true
                 },
 
-                // 6. Гражданство
+                // 8. Гражданство
                 new ColumnItem
                 {
                     ColumnType = DataType.Dictionary,
@@ -86,7 +96,7 @@ namespace SZI.Import.Templates
                     RawValue = string.Empty
                 },
 
-                // 7. Дополнительная информация_en
+                // 9. Дополнительная информация_en
                 new ColumnItem
                 {
                     ColumnType = DataType.PlainText,
@@ -95,8 +105,17 @@ namespace SZI.Import.Templates
                     RawValue = string.Empty
                 },
 
+                // 10. Дополнительная информация_ru
+                new ColumnItem
+                {
+                    ColumnType = DataType.PlainText,
+                    FileColumnName = "Дополнительная информация_ru",
+                    TableColumnName = "dopolnitelnaya_informacziya_ru",
+                    RawValue = string.Empty
+                },
+
                 //////////////// С Формулой //////////////////
-                // 8. Полное имя ru
+                // 11. Полное имя ru
                 new ColumnItem
                 {
                     ColumnType = DataType.FormulaText,
@@ -115,7 +134,7 @@ namespace SZI.Import.Templates
                     }
                 },
 
-                // 9. Полное имя en
+                // 12. Полное имя en
                 new ColumnItem
                 {
                     ColumnType = DataType.FormulaText,
@@ -133,15 +152,18 @@ namespace SZI.Import.Templates
                     }
                 },
 
-                // 10. ID инициатора розыска (Генеральный секретариат Интерпола (ГС Интерпол))
+                // 13. ID инициатора розыска (Генеральный секретариат Интерпола (ГС Интерпол))
                 new ColumnItem
                 {
-                    ColumnType = DataType.IdReference,
+                    ColumnType = DataType.Dictionary,
+                    FileColumnName = "Источник",
+                    DictionaryTableName = "objectsource",
+                    DictionaryColumnName = "name_ru",
                     TableColumnName = "objectsource_id",
-                    RawValue = "10000007"
+                    RawValue = string.Empty
                 },
 
-                // 11. Список "ИТБ"
+                // 14. Список "ИТБ"
                 new ColumnItem
                 {
                     ColumnType = DataType.IdReference,
@@ -149,7 +171,7 @@ namespace SZI.Import.Templates
                     RawValue = "2"
                 },
 
-                // 12. dtype = "Liczo"
+                // 15. dtype = "Liczo"
                 new ColumnItem
                 {
                     ColumnType = DataType.ExactText,
@@ -157,7 +179,7 @@ namespace SZI.Import.Templates
                     RawValue = "Liczo"
                 },
 
-                // 13. Категория = "Террористы"
+                // 16. Категория = "Террористы"
                 new ColumnItem
                 {
                     ColumnType = DataType.IdReference,
@@ -165,13 +187,13 @@ namespace SZI.Import.Templates
                     RawValue = "1"
                 },
 
-                // 14. objectstate = "PUBLISHED"
+                // 17. objectstate = "PUBLISHED"
                 new ColumnItem
                 {
                     ColumnType = DataType.ExactText,
                     TableColumnName = "objectstate",
                     RawValue = "PUBLISHED"
-                }
+                },
             }
             };
 
@@ -251,7 +273,34 @@ namespace SZI.Import.Templates
                     TableColumnName = "weight",
                     RawValue = "1"
                 }
-                } 
+                }
+            });
+
+            // Связь с организацией 
+            AdditionalTablesRows.Add(new RowItem
+            {
+                TableName = "public.svyaz_liczo_organizacziyarelat",
+                RowTemplate = new List<ColumnItem>
+                {
+                    // 1. source_id
+                new ColumnItem
+                {
+                    ColumnType = DataType.Dictionary,
+                    DictionaryTableName = "organizacziya",
+                    DictionaryColumnName = "naimenovanie_ru",
+                    DictionaryDType = "Organizacziya",
+                    FileColumnName = "Связь с организацией",
+                    TableColumnName = "source_id",
+                    RawValue = string.Empty
+                },
+
+                // 2. target_id
+                new ColumnItem
+                {
+                    ColumnType = DataType.MainObjectId,
+                    TableColumnName = "target_id"
+                },
+                }
             });
         }
     }

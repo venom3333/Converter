@@ -165,8 +165,8 @@ namespace SZI.Import
             // Перечисление столбцов
             for (int j = 0; j < rowItem.RowTemplate.Count; j++)
             {
-                // Если значения нет пуста
-                if (string.IsNullOrWhiteSpace(rowItem.RowTemplate[j].ComputedValue))
+                // Если значения нет, кроме Media и Id основного объекта (они вычисляются позднее на этапе вставки)
+                if (rowItem.RowTemplate[j].ColumnType != DataType.Media && rowItem.RowTemplate[j].ColumnType != DataType.MainObjectId && string.IsNullOrWhiteSpace(rowItem.RowTemplate[j].ComputedValue))
                 {
                     continue;
                 }
@@ -183,25 +183,27 @@ namespace SZI.Import
             // Перечисление значений
             for (int j = 0; j < rowItem.RowTemplate.Count; j++)
             {
-                // Если значения нет пуста
-                if (string.IsNullOrWhiteSpace(rowItem.RowTemplate[j].ComputedValue))
+                // Обработка медиа контента
+                if (rowItem.RowTemplate[j].ColumnType == DataType.Media)
                 {
-                    continue;
+                    string fullName = ImportData.MainTable[counter].RowTemplate.FirstOrDefault(rt => rt.TableColumnName == "fullname_ru").ComputedValue;
+                    rowItem.RowTemplate[j].ComputedValue = ParseLogic.ParseMedia(ImportFile, fullName);
+                    if (rowItem.RowTemplate[j].ComputedValue == string.Empty)
+                    {
+                        return string.Empty;
+                    }
                 }
 
+                // ID основного объекта
                 if (rowItem.RowTemplate[j].ColumnType == DataType.MainObjectId)
                 {
                     rowItem.RowTemplate[j].ComputedValue = mainId.ToString();
                 }
-                // Обработка медиа контента
-                else if(rowItem.RowTemplate[j].ColumnType == DataType.Media)
+
+                // Если значения нет пуста
+                if (string.IsNullOrWhiteSpace(rowItem.RowTemplate[j].ComputedValue))
                 {
-                    string fullName = ImportData.MainTable[counter].RowTemplate.FirstOrDefault(rt => rt.TableColumnName == "fullname_ru").ComputedValue;
-                    rowItem.RowTemplate[j].ComputedValue = ParseLogic.ParseMedia(ImportFile, fullName);
-                    if(rowItem.RowTemplate[j].ComputedValue == string.Empty)
-                    {
-                        return string.Empty;
-                    }
+                    continue;
                 }
 
                 query += $"'{rowItem.RowTemplate[j].ComputedValue}', ";
@@ -375,7 +377,18 @@ namespace SZI.Import
                     foreach (var column in Template.MainTableRow.RowTemplate.Where(c => c.FileColumnName != null))
                     {
                         string rawValue = parser[column.FileColumnName];
-                        newMainRow.RowTemplate.Add(new ColumnItem(column, rawValue));
+                        if (string.IsNullOrWhiteSpace(rawValue))
+                        {
+                            continue;
+                        }
+
+                        var newColumn = new ColumnItem(column, rawValue);
+
+                        if (string.IsNullOrEmpty(newColumn.ComputedValue))
+                        {
+                            continue;
+                        }
+                        newMainRow.RowTemplate.Add(newColumn);
                     }
 
                     // Набор столбцов в строку (остальные)
@@ -401,7 +414,18 @@ namespace SZI.Import
                         foreach (var column in Template.AdditionalTablesRows[i].RowTemplate.Where(c => c.FileColumnName != null))
                         {
                             string rawValue = parser[column.FileColumnName];
-                            newAdditionalRow.RowTemplate.Add(new ColumnItem(column, rawValue));
+                            if (string.IsNullOrWhiteSpace(rawValue))
+                            {
+                                continue;
+                            }
+
+                            var newColumn = new ColumnItem(column, rawValue);
+
+                            if (string.IsNullOrEmpty(newColumn.ComputedValue))
+                            {
+                                continue;
+                            }
+                            newAdditionalRow.RowTemplate.Add(newColumn);
                         }
 
                         // Набор столбцов в строку (остальные)
