@@ -46,8 +46,6 @@ namespace SZI.Import
         {
             ImportFile = fileInfo;
 
-            //ConnectionString = "Server=194.168.0.117;Port=5432;Database=freska_cib;User Id=postgres;Password=%CW_&1|t;";
-            //ConnectionString = "Server=194.168.0.117;Port=5432;Database=freska;User Id=postgres;Password=%CW_&1|t;";
             ConnectionString = ConfigurationManager.ConnectionStrings["freska"].ConnectionString;
 
             Connection = new NpgsqlConnection(ConnectionString);
@@ -167,6 +165,11 @@ namespace SZI.Import
             // Перечисление столбцов
             for (int j = 0; j < rowItem.RowTemplate.Count; j++)
             {
+                // Если значения нет пуста
+                if (string.IsNullOrWhiteSpace(rowItem.RowTemplate[j].ComputedValue))
+                {
+                    continue;
+                }
                 query += $"{rowItem.RowTemplate[j].TableColumnName}, ";
             }
 
@@ -180,6 +183,12 @@ namespace SZI.Import
             // Перечисление значений
             for (int j = 0; j < rowItem.RowTemplate.Count; j++)
             {
+                // Если значения нет пуста
+                if (string.IsNullOrWhiteSpace(rowItem.RowTemplate[j].ComputedValue))
+                {
+                    continue;
+                }
+
                 if (rowItem.RowTemplate[j].ColumnType == DataType.MainObjectId)
                 {
                     rowItem.RowTemplate[j].ComputedValue = mainId.ToString();
@@ -221,8 +230,8 @@ namespace SZI.Import
             // Перечисление столбцов
             for (int j = 0; j < ImportData.MainTable[i].RowTemplate.Count; j++)
             {
-                // Если дата пуста
-                if (ImportData.MainTable[i].RowTemplate[j].ColumnType == DataType.Date && string.IsNullOrWhiteSpace(ImportData.MainTable[i].RowTemplate[j].ComputedValue))
+                // Если значения нет пуста
+                if (string.IsNullOrWhiteSpace(ImportData.MainTable[i].RowTemplate[j].ComputedValue))
                 {
                     continue;
                 }
@@ -239,8 +248,8 @@ namespace SZI.Import
             // Перечисление значений
             for (int j = 0; j < ImportData.MainTable[i].RowTemplate.Count; j++)
             {
-                // Если дата пуста
-                if (ImportData.MainTable[i].RowTemplate[j].ColumnType == DataType.Date && string.IsNullOrWhiteSpace(ImportData.MainTable[i].RowTemplate[j].ComputedValue))
+                // Если значения нет пуста
+                if (string.IsNullOrWhiteSpace(ImportData.MainTable[i].RowTemplate[j].ComputedValue))
                 {
                     continue;
                 }
