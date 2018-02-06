@@ -21,10 +21,13 @@ namespace ConvertorForSOI
             {3, ""}  // Номер месяца.
         };
 
+        public DateTime Date { get; set; }
+
         public BirthDate(string birthDate)
         {
             TryParse(birthDate);
         }
+
         public bool TryParse(string birthDate)
         {
             try
@@ -48,7 +51,7 @@ namespace ConvertorForSOI
                     BirthDates[1] = dtfi.GetMonthName(dtBirthDate.Month);
                     BirthDates[2] = dtBirthDate.Year.ToString();
                     BirthDates[3] = dtBirthDate.Month.ToString();
-
+                    Date = dtBirthDate;
                 }
                 else
                 {

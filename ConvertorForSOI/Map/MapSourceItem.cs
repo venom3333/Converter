@@ -14,7 +14,7 @@ namespace ConvertorForSOI
     public class MapSourceItem
     {
         // Тип документа. Даже если документ одного расширения, он может быть другого типа.
-        public enum TypeDocument { Form2, Form3, Form4, Xls, DocCards, NoType };
+        public enum TypeDocument { Form2, Form3, Form4, Xls, DocCards, FormHz, NoType };
 
         public int RowNumber; // Номер ряда с которого начинаются данные, начиная с 1.
         public string Extention; // Расширение файла (например .xls).
@@ -36,6 +36,8 @@ namespace ConvertorForSOI
                 return TypeDocument.Form4;
             else if (strTypeDocument == "DocCards")
                 return TypeDocument.DocCards;
+            else if (strTypeDocument == "FormHz")
+                return TypeDocument.FormHz;
             else if (strTypeDocument == "Xls")
                 return TypeDocument.Xls;
             else if (strTypeDocument == "NoType")
@@ -63,6 +65,8 @@ namespace ConvertorForSOI
                     return MapSourceItem.TypeDocument.Form4;
                 else if (strHeader.Contains("DocКарточки"))
                     return MapSourceItem.TypeDocument.DocCards;
+                else if (strHeader.Contains("Форма Hz"))
+                    return MapSourceItem.TypeDocument.FormHz;
                 else
                     return MapSourceItem.TypeDocument.NoType;
             }

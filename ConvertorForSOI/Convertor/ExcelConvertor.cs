@@ -7,11 +7,27 @@ using System.Data.OleDb;
 using System.Data;
 using System.Windows;
 using System.IO;
+using System.Runtime.InteropServices.ComTypes;
+using ExcelDataReader;
 
 namespace ConvertorForSOI
 {
     class ExcelConvertor
     {
+        public static DataSet XlsXToDataSet(string sourceFile, Map map)
+        {
+            //Reading from a binary Excel file ('97-2003 format; *.xls)
+            //IExcelDataReader excelReader2003 = ExcelReaderFactory.CreateBinaryReader(stream);
+
+            //Reading from a OpenXml Excel file (2007 format; *.xlsx)
+            FileStream stream = new FileStream(sourceFile, FileMode.Open);
+            IExcelDataReader excelReader2007 = ExcelReaderFactory.CreateOpenXmlReader(stream);
+
+            //DataSet - The result of each spreadsheet will be created in the result.Tables
+            DataSet ds = excelReader2007.AsDataSet();
+            stream.Close();
+            return ds;
+        }
         /// <summary>
         /// Открываем поданный на вход xls файл, берем из него первый лист (если нет листов возвращаем ошибку).
         /// Возвращаем данные листа в виде DataTable и ещё одну таблицу с названием файла и типом документа.
@@ -128,7 +144,7 @@ namespace ConvertorForSOI
                 MessageBox.Show("Разместите xls файл, куда сохранять данные, в корректной папке.");
                 return null;
             }
-            if(File.Exists(dataPath))
+            if (File.Exists(dataPath))
             {
                 File.Delete(dataPath);
             }
@@ -172,12 +188,12 @@ namespace ConvertorForSOI
                 }
                 return dataPath;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 MessageBox.Show(e.Message);
                 return null;
             }
-            
+
         }
     }
 }

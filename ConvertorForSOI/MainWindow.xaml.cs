@@ -24,7 +24,7 @@ using System.IO;
 using System.Configuration;
 using ConvertorForSOI.SQLs;
 using SZI.Import;
-
+using System.Text.RegularExpressions;
 
 namespace ConvertorForSOI
 {
@@ -48,7 +48,6 @@ namespace ConvertorForSOI
         private BackgroundWorker bw = new BackgroundWorker();
         Popup pop = new Popup();
 
-
         public MainWindow()
         {
             InitializeComponent();
@@ -56,7 +55,7 @@ namespace ConvertorForSOI
             // включаем кнопку Truncate Real если тестовая машина!
             if (ConfigurationManager.ConnectionStrings["Nake_data"].ConnectionString.Contains("Data Source=194.168.0.140"))
             {
-                btnTruncateReal.IsEnabled = true;
+                btnTruncateReal.IsEnabled = false; // Временно отключено и для тестового сервера
             }
         }
 
@@ -201,7 +200,7 @@ namespace ConvertorForSOI
                 // включаем кнопку Truncate Real если тестовая машина!
                 if (ConfigurationManager.ConnectionStrings["Nake_data"].ConnectionString.Contains("Data Source=194.168.0.140"))
                 {
-                    btnTruncateReal.IsEnabled = true;
+                    btnTruncateReal.IsEnabled = false; // Временно отключено и для тестового сервера
                 }
 
                 checkBox_IsMissing.IsEnabled = true;
@@ -222,16 +221,18 @@ namespace ConvertorForSOI
             Dictionary<string, string> args = new Dictionary<string, string>();
             args.Add("isMissing", checkBox_IsMissing.IsChecked.ToString().ToLower());
 
-            System.Threading.Tasks.Task.Factory.StartNew(() =>
-            {
-                //this will call in background thread
-                worker_DoWork(args);
-            }).ContinueWith(t =>
-            {
-                // Вертаем в зад наши контролы
-                WorkingStatus(false);
-            }, System.Threading.Tasks.TaskScheduler.FromCurrentSynchronizationContext());
+            worker_DoWork(args);
+            WorkingStatus(false);
 
+            //System.Threading.Tasks.Task.Factory.StartNew(() =>
+            //{
+            //    //this will call in background thread
+            //    worker_DoWork(args);
+            //}).ContinueWith(t =>
+            //{
+            //    // Вертаем в зад наши контролы
+            //    WorkingStatus(false);
+            //}, System.Threading.Tasks.TaskScheduler.FromCurrentSynchronizationContext());
         }
 
         void worker_DoWork(Dictionary<string, string> args)

@@ -8,6 +8,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using ConvertorForSOI.SQLs;
+using System.Diagnostics;
 
 namespace ConvertorForSOI
 {
@@ -61,7 +62,7 @@ namespace ConvertorForSOI
                     continue;
                 }
                 // ФИО
-                else if (rowsRus[rowIdx].Field<string>(0).ToLower().Contains("установоч"))
+                else if (rowsRus[rowIdx].Field<string>(0).ToLower().Contains("установоч") || rowsRus[rowIdx].Field<string>(0).ToLower().Contains("ф.и.о.") || rowsRus[rowIdx].Field<string>(0).ToLower().Contains("фио"))
                 {
                     // заполняем поле code 
                     newRow[1] = code;
@@ -89,7 +90,7 @@ namespace ConvertorForSOI
                 }
 
                 // Дата рождения
-                else if (rowsRus[rowIdx].Field<string>(0).ToLower().Contains("дата рожден"))
+                else if (rowsRus[rowIdx].Field<string>(0).ToLower().Contains("дата рожден") && !rowsRus[rowIdx].Field<string>(0).ToLower().Contains("место"))
                 {
                     birthDate = new BirthDate(rowsRus[rowIdx].Field<string>(1));
                     // День
@@ -111,13 +112,63 @@ namespace ConvertorForSOI
                 }
 
                 // Место рождения
-                else if (rowsRus[rowIdx].Field<string>(0).ToLower().Contains("место рожден"))
+                else if (rowsRus[rowIdx].Field<string>(0).ToLower().Contains("место рожден") && !rowsRus[rowIdx].Field<string>(0).ToLower().Contains("дата"))
                 {
                     newRow[12] = rowsRus[rowIdx].Field<string>(1);
 
                     if (dtBodyEng != null)
                     {
                         newRow[13] = rowsEng[rowIdx].Field<string>(1);
+                    }
+                }
+
+                // Дата и место рождения
+                else if (rowsRus[rowIdx].Field<string>(0).ToLower().Contains("дата") && rowsRus[rowIdx].Field<string>(0).ToLower().Contains("место"))
+                {
+                    // Отделяем дату от места
+                    var parts = rowsRus[rowIdx].Field<string>(1).Split(new char[] { ',' }, 2);
+
+                    // Дата
+                    birthDate = new BirthDate(parts[0]);
+                    // День
+                    short result;
+                    if (short.TryParse(birthDate.BirthDates[0], out result))
+                    {
+                        newRow[5] = result;
+                    }
+                    // Месяц
+                    if (!String.IsNullOrWhiteSpace(birthDate.BirthDates[1].ToString()))
+                    {
+                        newRow[6] = birthDate.BirthDates[1].ToString();
+                    }
+                    // Год
+                    if (short.TryParse(birthDate.BirthDates[2], out result))
+                    {
+                        newRow[7] = result;
+                    }
+
+                    // Место
+                    newRow[12] = parts[0];
+
+                    if (dtBodyEng != null)
+                    {
+                        var placeEng = rowsRus[rowIdx].Field<string>(1).Split(new char[] { ',' }, 2);
+                        if (placeEng.Length > 1)
+                        {
+                            newRow[13] = placeEng[1];
+                        }
+                    }
+                }
+
+                // Гражданство
+                else if (rowsRus[rowIdx].Field<string>(0).ToLower().Contains("гражданств"))
+                {
+                    //newRow[14] = rowsRus[rowIdx].Field<string>(1); // не понятно как программа заносит
+                    //newRow[28] = rowsRus[rowIdx].Field<string>(1); // --//--//--
+                    // запишем в доп.таблицу чтобы не терять информацию
+                    if (!String.IsNullOrWhiteSpace(rowsRus[rowIdx].Field<string>(1)))
+                    {
+                        newRow[14] += "Гражданство: " + rowsRus[rowIdx].Field<string>(1) + "\n";
                     }
                 }
 
@@ -170,14 +221,21 @@ namespace ConvertorForSOI
                         continue;
                     }
                     // Разбиваем названия файлов фоток на лист
-                    char[] separator = {';'};
+                    char[] separator = { ';' };
                     List<string> fotoFileList = rowsRus[rowIdx].Field<string>(1).Split(separator, StringSplitOptions.RemoveEmptyEntries).ToList();
 
                     if (fotoFileList.Count == 0)
                         newRow[29] = null;
                     // Иначе записываем путь к фото
                     else
-                        newRow[29] = Path.GetFileName(fotoFileList[0]);
+                        try
+                        {
+                            newRow[29] = Path.GetFileName(fotoFileList[0]);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"{fullNameRus.Names[0]} {fullNameRus.Names[1]} {fullNameRus.Names[2]}: {ex.Message}");
+                        }
                     // Если больше одного, то заполняем вспомогательную таблицу
                     if (fotoFileList.Count > 1)
                     {
@@ -191,7 +249,7 @@ namespace ConvertorForSOI
                     }
                 }
 
-                // Документ, удостоверяющий личность
+                // Документ, удостоверяющий личность (Для новых пришедших документов нужно подогнать парсинг)
                 else if (rowsRus[rowIdx].Field<string>(0).ToLower().Contains("документ"))
                 {
                     PersonDocumentType personDoc = new PersonDocumentType();
@@ -219,17 +277,17 @@ namespace ConvertorForSOI
                     // Если есть паспорт гражданина РФ, то внесем гражданство
                     foreach (var docName in personDoc.documentNames)
                     {
-                        if (docName.Contains("РФ"))
+                        if (docName.Contains("РФ") || docName.Contains("Российск"))
                         {
                             newRow[14] = "Россия (Российская Федерация, РФ)";
                         }
                     }
 
-                    // Запишем еще в доп информацию из англ версии, т.к. в строке может быть инфо о том кто выдал документ и др.
-                    //if (!String.IsNullOrWhiteSpace(rowsRus[rowIdx].Field<string>(1)))
-                    //{
-                    //    addedRow[1] += "Дополнительная информация о документах: " + rowsRus[rowIdx].Field<string>(1) + "\n";
-                    //}
+                    // Запишем еще в доп информацию из англ версии, т.к.в строке может быть инфо о том кто выдал документ и др.
+                    if (!String.IsNullOrWhiteSpace(rowsRus[rowIdx].Field<string>(1)))
+                    {
+                        addedRow[1] += "Дополнительная информация о документах: " + rowsRus[rowIdx].Field<string>(1) + "\n";
+                    }
 
                     if (dtBodyEng != null)
                     {

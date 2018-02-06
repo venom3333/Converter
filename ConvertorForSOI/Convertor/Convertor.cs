@@ -16,6 +16,10 @@ namespace ConvertorForSOI
         // Счетчик количества снятых с розыска
         private static int endWantedCounter = 0;
 
+        // Счетчик добавленного перевода
+        private static int translationCounter = 0;
+
+
         // Набор используемых таблиц
         private static Dictionary<string, string> tableSet;
 
@@ -49,6 +53,7 @@ namespace ConvertorForSOI
                 else if (typeDocument.ToString() == "Form2" ||
                          typeDocument.ToString() == "Form3" ||
                          typeDocument.ToString() == "Form4" ||
+                         typeDocument.ToString() == "FormHz" ||
                          typeDocument.ToString() == "Xls")
                 {
                     BaseTypesConvertor.BaseTypeConvert(dsSourceRus, ref dsResult, map, fotoPath, isMissingPersons, tableSet);
@@ -57,11 +62,13 @@ namespace ConvertorForSOI
                 ParseHelper.SortMissedLists();
 
                 // Если снимали с розыска, выведем инфу сколько человек
-                if (endWantedCounter > 0)
+                if (endWantedCounter > 0 || translationCounter > 0)
                 {
-                    MessageBox.Show("Снято с розыска: " + endWantedCounter + " чел.");
+                    MessageBox.Show($"Снято с розыска: {endWantedCounter} чел. \n Переводов добавлено: {translationCounter}");
                     // сбросим счетчик снимаемых с розыска
                     endWantedCounter = 0;
+                    // сбросим счетчик добавленных переводов
+                    translationCounter = 0;
                 }
 
                 return true;
@@ -72,10 +79,9 @@ namespace ConvertorForSOI
                 MessageBox.Show(e.StackTrace + "\n" + e.Message);
                 return false;
             }
-            return true;
         }
 
-        public static void CheckLogics(DataRow newRow, DataRow addedRow, bool isMissingPersons, ref DataSet dsResult)
+        public static void CheckLogics(DataRow newRow, DataRow addedRow, bool isMissingPersons, ref DataSet dsResult, MapSourceItem.TypeDocument typeDocument = MapSourceItem.TypeDocument.NoType)
         {
             // Проверяем newRow.ItemArray[2,3,4,5,6,7] на наличие в NAK_AJUSTINGDATA
             // если нет, выполняем код на вставку в NAK_TEMP_WANTED...
@@ -116,7 +122,7 @@ namespace ConvertorForSOI
                         if (WantedSQL.PersonExists(lastName, firstName, secondName1, monthBirthDate, yearBirthDate, dayBirthDate))
                         {
                             // Находим A_ID в NAK_WANTED
-                            int wantedID = WantedSQL.GetWantedID(lastName, firstName, secondName1, monthBirthDate, yearBirthDate, dayBirthDate);
+                            int wantedID = WantedSQL.GetWantedID(out int personId, lastName, firstName, secondName1, monthBirthDate, yearBirthDate, dayBirthDate);
 
                             // Находим A_ID в NAK_SEARCHTYPE
                             string searchType = newRow.Field<string>(21) == null ? "" : newRow.Field<string>(21).ToUpper();
@@ -132,13 +138,35 @@ namespace ConvertorForSOI
                             {
                                 // Получаем всю необходимую информацию о снятии с розыска для добавления
                                 BirthDate endDate = new BirthDate(newRow.Field<string>(23));
-                                string endNote = newRow.Field<string>(24);
+                                string endNote;
+                                string endNote_en;
+                                if (typeDocument == MapSourceItem.TypeDocument.FormHz) // Есть захардкоженный тип документа где инфо о снятии предопределено
+                                {
+                                    endNote = "РОЗЫСК В РОССИИ ПРЕКРАЩЕН ПО РЕШЕНИЮ ГЕН.ПРОКУРАТУРЫ РФ";
+                                    endNote_en = "Search is terminated by the decision of the Prosecutor General’s Office of the Russian Federation";
+                                }
+                                else
+                                {
+                                    endNote = newRow.Field<string>(24);
+                                    endNote_en = string.Empty;
+                                }
+
                                 // добавляем инфо о снятии с розыска  в зависимости от того пропавший это без вести или преступник
-                                if (WantedSQL.AddSearchEndInfo(wantedID, endDate, endNote))
+                                if (WantedSQL.AddSearchEndInfo(wantedID, endDate, endNote, endNote_en))
                                 {
                                     endWantedCounter++;
                                 }
                             }
+
+                            if (typeDocument == MapSourceItem.TypeDocument.FormHz) // Есть захардкоженный тип документа где инфо о снятии предопределено
+                            {
+                                // Добавляем перевод
+                                if (personId > 0 && WantedSQL.AddTranslateInfo(personId, wantedID, newRow, addedRow))
+                                {
+                                    translationCounter++;
+                                }
+                            }
+
                             return;
                         }
                         else
@@ -274,7 +302,7 @@ namespace ConvertorForSOI
                         // Если количество строк в таблицах обоих файлов после обработки конвертером не сошлось
                         if (dsRus.Tables[1].Rows.Count != dsEng.Tables[1].Rows.Count)
                         {
-                            throw new Exception("Количество строк в таблицах рус и eng после конвертирования не равно!");
+                            throw new Exception($"Количество строк в таблицах рус и eng после конвертирования не равно! Рус:{dsRus.Tables[1].Rows.Count}, Eng:{dsEng.Tables[1].Rows.Count}");
                         }
                     }
                 }
@@ -284,7 +312,7 @@ namespace ConvertorForSOI
                 }
                 else if (extentionRus == ".xlsx")
                 {
-                    throw new ArgumentException("Метода для обработки .xlsx файлов, пока нет.");
+                    dsRus = ExcelConvertor.XlsXToDataSet(sourceFileRus, map);
                 }
 
                 if (dsRus == null)

@@ -21,10 +21,13 @@ namespace ConvertorForSOI
             listForDocForm3 = GetListForDocForm3();
             listForDocForm4 = GetListForDocForm4();
             listForDocCards = GetListForDocCards();
+            listForDocFormHz = GetListForDocFormHz();
             listForXls = GetListForXls();
 
             mapSourceList.Add(new MapSourceItem() { RowNumber = 3, Extention = ".xls", MapConvertList = listForXls, TypeDoc = MapSourceItem.TypeDocument.Xls });
+            mapSourceList.Add(new MapSourceItem() { RowNumber = 3, Extention = ".xlsx", MapConvertList = listForXls, TypeDoc = MapSourceItem.TypeDocument.Xls });
             mapSourceList.Add(new MapSourceItem() { RowNumber = 3, Extention = ".doc", MapConvertList = listForDocForm2, TypeDoc = MapSourceItem.TypeDocument.Form2 });
+            mapSourceList.Add(new MapSourceItem() { RowNumber = 3, Extention = ".doc", MapConvertList = listForDocFormHz, TypeDoc = MapSourceItem.TypeDocument.FormHz });
             mapSourceList.Add(new MapSourceItem() { RowNumber = 3, Extention = ".doc", MapConvertList = listForDocForm3, TypeDoc = MapSourceItem.TypeDocument.Form3 });
             mapSourceList.Add(new MapSourceItem() { RowNumber = 3, Extention = ".doc", MapConvertList = listForDocForm4, TypeDoc = MapSourceItem.TypeDocument.Form4 });
             mapSourceList.Add(new MapSourceItem() { RowNumber = 1, Extention = ".doc", MapConvertList = listForDocCards, TypeDoc = MapSourceItem.TypeDocument.DocCards });
@@ -32,7 +35,6 @@ namespace ConvertorForSOI
 
         public int GetRowNumberByTypeDocument(MapSourceItem.TypeDocument typeDocument)
         {
-            // g - просто alias
             int rowNumber = mapSourceList.Where(g => g.TypeDoc == typeDocument).Select(g => g.RowNumber).First();
             return rowNumber;
         }
@@ -97,8 +99,53 @@ namespace ConvertorForSOI
         // Карта соответствий для источника данных из .doc файла созданного по Форме 4.
         private List<MapConvertItem> listForDocForm4;
 
+        // Карта соответствий для источника данных из .doc файла созданного по непонятной форме.
+        private List<MapConvertItem> listForDocFormHz;
+
         // Карта соответствий для источника данных из .xls файла.
         private List<MapConvertItem> listForXls;
+
+        // Заполнение карты соответствия для источника данных из .doc файла созданного по хз что за форма.
+        private List<MapConvertItem> GetListForDocFormHz()
+        {
+            List<MapConvertItem> ListForDocFormHz = new List<MapConvertItem>();
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 0, SourceTableIndex = -1, Category = ConvertCategory.NoCategory, NumberCategory = -1 });      //A. [CODE_OLD]          
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 1, SourceTableIndex = -2, Category = ConvertCategory.Code, NumberCategory = -1 });            //B. [Code]              
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 2, SourceTableIndex = 1, Category = ConvertCategory.FullName, NumberCategory = 0 });          //C. [lastName]          
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 3, SourceTableIndex = 1, Category = ConvertCategory.FullName, NumberCategory = 1 });          //D. [firstName]         
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 4, SourceTableIndex = 1, Category = ConvertCategory.FullName, NumberCategory = 2 });          //E. [secondName]        
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 5, SourceTableIndex = 4, Category = ConvertCategory.BirthDate, NumberCategory = 0 });         //F. [daybirthDate]      
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 6, SourceTableIndex = 4, Category = ConvertCategory.BirthDate, NumberCategory = 1 });         //G. [monthbirthDate]    
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 7, SourceTableIndex = 4, Category = ConvertCategory.BirthDate, NumberCategory = 2 });         //H. [yearbirthDate]     
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 8, SourceTableIndex = 14, Category = ConvertCategory.FullName, NumberCategory = 0 });       //I. [lastName_en]       
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 9, SourceTableIndex = 14, Category = ConvertCategory.FullName, NumberCategory = 1 });       //J. [firstName_en]      
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 10, SourceTableIndex = 14, Category = ConvertCategory.FullName, NumberCategory = 2 });     //K. [secondName1_en]    
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 11, SourceTableIndex = 2, Category = ConvertCategory.Sex, NumberCategory = -1 });             //L. [Sex]               
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 12, SourceTableIndex = 5, Category = ConvertCategory.NoCategory, NumberCategory = -1 });      //M. [birthPlace]        
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 13, SourceTableIndex = 15, Category = ConvertCategory.NoCategory, NumberCategory = -1 });      //N. [birthPlace_en]     
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 14, SourceTableIndex = -1, Category = ConvertCategory.NoCategory, NumberCategory = 1 });      //O. [citizenship]       
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 15, SourceTableIndex = 6, Category = ConvertCategory.NoCategory, NumberCategory = 2 });       //P. [Mark]              
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 16, SourceTableIndex = -1, Category = ConvertCategory.NoCategory, NumberCategory = -1 });     //Q. [mark_en]           
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 17, SourceTableIndex = 11, Category = ConvertCategory.WantedInitiator, NumberCategory = -1 });     //R. [wantedInitiator]   
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 18, SourceTableIndex = 8, Category = ConvertCategory.NoCategory, NumberCategory = -1 });      //S. [Accusation]        
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 19, SourceTableIndex = 17, Category = ConvertCategory.NoCategory, NumberCategory = -1 });     //T. [accusation_en]     
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 20, SourceTableIndex = -1, Category = ConvertCategory.NoCategory, NumberCategory = -1 });     //U. [Source]            
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 21, SourceTableIndex = 10, Category = ConvertCategory.SearchType, NumberCategory = -1 });     //V. [searchType]        
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 22, SourceTableIndex = 12, Category = ConvertCategory.BirthDate, NumberCategory = -1 });     //W. [beginDate]         
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 23, SourceTableIndex = 13, Category = ConvertCategory.BirthDate, NumberCategory = -1 });     //X. [endDate]           
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 24, SourceTableIndex = -1, Category = ConvertCategory.NoCategory, NumberCategory = -1 });     //Y. [searchNote]        
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 25, SourceTableIndex = 7, Category = ConvertCategory.PersonDocumentType, NumberCategory = -1 }); //Z. [documentType]      
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 26, SourceTableIndex = 7, Category = ConvertCategory.PersonDocumentData, NumberCategory = -1 });     //AA.[Data]              
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 27, SourceTableIndex = -1, Category = ConvertCategory.NoCategory, NumberCategory = -1 });     //AB.[wantedInitiator_en]
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 28, SourceTableIndex = -1, Category = ConvertCategory.NoCategory, NumberCategory = -1 });     //AC.[naz]               
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 29, SourceTableIndex = -2, Category = ConvertCategory.Foto, NumberCategory = -1 });           //AD.[photoList]         
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 30, SourceTableIndex = -2, Category = ConvertCategory.Num, NumberCategory = -1 });            //AE.[num]             
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 1, SourceTableIndex = 3, Category = ConvertCategory.PersonNote, NumberCategory = -2 });            //AE.[NICKNAME]  ADDED
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 1, SourceTableIndex = 9, Category = ConvertCategory.PersonNote, NumberCategory = -2 });            //AE.[NICKNAME]  ADDED
+            ListForDocFormHz.Add(new MapConvertItem() { ResultTableIndex = 2, SourceTableIndex = 18, Category = ConvertCategory.PersonNote, NumberCategory = -2 });            //AE.[NICKNAME]  ADDED
+
+            return ListForDocFormHz;
+        }
 
         // Заполнение карты соответствия для источника данных из .doc файла созданного по Форме 2.
         private List<MapConvertItem> GetListForDocForm2()
@@ -112,9 +159,9 @@ namespace ConvertorForSOI
             ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 5, SourceTableIndex = 4, Category = ConvertCategory.BirthDate, NumberCategory = 0 });         //F. [daybirthDate]      
             ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 6, SourceTableIndex = 4, Category = ConvertCategory.BirthDate, NumberCategory = 1 });         //G. [monthbirthDate]    
             ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 7, SourceTableIndex = 4, Category = ConvertCategory.BirthDate, NumberCategory = 2 });         //H. [yearbirthDate]     
-            ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 8, SourceTableIndex = -1, Category = ConvertCategory.NoCategory, NumberCategory = 1 });       //I. [lastName_en]       
-            ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 9, SourceTableIndex = -1, Category = ConvertCategory.NoCategory, NumberCategory = 2 });       //J. [firstName_en]      
-            ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 10, SourceTableIndex = -1, Category = ConvertCategory.NoCategory, NumberCategory = -1 });     //K. [secondName1_en]    
+            ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 8, SourceTableIndex = 13, Category = ConvertCategory.FullName, NumberCategory = 0 });       //I. [lastName_en]       
+            ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 9, SourceTableIndex = 13, Category = ConvertCategory.FullName, NumberCategory = 1 });       //J. [firstName_en]      
+            ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 10, SourceTableIndex = 13, Category = ConvertCategory.FullName, NumberCategory = 2 });     //K. [secondName1_en]    
             ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 11, SourceTableIndex = 2, Category = ConvertCategory.Sex, NumberCategory = -1 });             //L. [Sex]               
             ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 12, SourceTableIndex = 5, Category = ConvertCategory.NoCategory, NumberCategory = -1 });      //M. [birthPlace]        
             ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 13, SourceTableIndex = -1, Category = ConvertCategory.NoCategory, NumberCategory = 0 });      //N. [birthPlace_en]     
@@ -126,7 +173,7 @@ namespace ConvertorForSOI
             ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 19, SourceTableIndex = -1, Category = ConvertCategory.NoCategory, NumberCategory = -1 });     //T. [accusation_en]     
             ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 20, SourceTableIndex = -1, Category = ConvertCategory.NoCategory, NumberCategory = -1 });     //U. [Source]            
             ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 21, SourceTableIndex = 10, Category = ConvertCategory.SearchType, NumberCategory = -1 });     //V. [searchType]        
-            ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 22, SourceTableIndex = 12, Category = ConvertCategory.NoCategory, NumberCategory = -1 });     //W. [beginDate]         
+            ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 22, SourceTableIndex = 12, Category = ConvertCategory.BirthDate, NumberCategory = -1 });     //W. [beginDate]         
             ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 23, SourceTableIndex = -3, Category = ConvertCategory.NoCategory, NumberCategory = -1 });     //X. [endDate]           
             ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 24, SourceTableIndex = -1, Category = ConvertCategory.NoCategory, NumberCategory = -1 });     //Y. [searchNote]        
             ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 25, SourceTableIndex = 7, Category = ConvertCategory.PersonDocumentType, NumberCategory = -1 }); //Z. [documentType]      
@@ -136,6 +183,7 @@ namespace ConvertorForSOI
             ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 29, SourceTableIndex = -2, Category = ConvertCategory.Foto, NumberCategory = -1 });           //AD.[photoList]         
             ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 30, SourceTableIndex = -2, Category = ConvertCategory.Num, NumberCategory = -1 });            //AE.[num]             
             ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 1, SourceTableIndex = 3, Category = ConvertCategory.PersonNote, NumberCategory = -2 });            //AE.[NICKNAME]  ADDED
+            ListForDocForm2.Add(new MapConvertItem() { ResultTableIndex = 1, SourceTableIndex = 9, Category = ConvertCategory.PersonNote, NumberCategory = -2 });            //AE.[NICKNAME]  ADDED
 
             return ListForDocForm2;
         }
@@ -358,22 +406,27 @@ namespace ConvertorForSOI
         /// <returns></returns>
         public static List<string> GetFotoFileList(string fotoPath, FullName fullName, BirthDate birthDate)
         {
-            if (!Directory.Exists(fotoPath))
+            if(string.IsNullOrWhiteSpace(fullName.Names[0]))
+            {
+                return new List<string>();
+            }
+
+                if (!Directory.Exists(fotoPath))
             {
                 MessageBox.Show("Выберете корректный путь к папке с фотографиями.");
                 return null;
             }
             string[] fotoFiles = Directory.GetFiles(fotoPath);
             List<string> fotoFileNames = fotoFiles.Where(g=>(fullName != null ? (
-                (fullName.Names[0] != " " ? g.ToLower().Contains(fullName.Names[0].ToLower().Trim()) : true)&&
-                (fullName.Names[0] != " " ? g.ToLower().Contains(fullName.Names[1].ToLower().Trim()) : true)&&
-                (fullName.Names[0] != " " ? g.ToLower().Contains(fullName.Names[2].ToLower().Trim()) : true)
+                (!string.IsNullOrWhiteSpace(fullName.Names[0]) ? g.ToLower().Contains(fullName.Names[0].ToLower().Trim()) : true)&&
+                (!string.IsNullOrWhiteSpace(fullName.Names[1]) ? g.ToLower().Contains(fullName.Names[1].ToLower().Trim()) : true) &&
+                (!string.IsNullOrWhiteSpace(fullName.Names[2]) ? g.ToLower().Contains(fullName.Names[2].ToLower().Trim()) : true)
                 ) : true)
                 &&
                 (birthDate != null ? (
-                (birthDate.BirthDates[0] != "" ? g.ToLower().Contains(birthDate.BirthDates[0].ToLower().Trim()) : true) &&
-                (birthDate.BirthDates[1] != "" ? g.ToLower().Contains(birthDate.BirthDates[3].ToLower().Trim()) : true) &&
-                (birthDate.BirthDates[2] != "" ? g.ToLower().Contains(birthDate.BirthDates[2].ToLower().Trim()) : true)) : true)
+                (!string.IsNullOrWhiteSpace(birthDate.BirthDates[0]) ? g.ToLower().Contains(birthDate.BirthDates[0].ToLower().Trim()) : true) &&
+                (!string.IsNullOrWhiteSpace(birthDate.BirthDates[1]) ? g.ToLower().Contains(birthDate.BirthDates[3].ToLower().Trim()) : true) &&
+                (!string.IsNullOrWhiteSpace(birthDate.BirthDates[2]) ? g.ToLower().Contains(birthDate.BirthDates[2].ToLower().Trim()) : true)) : true)
                 ).ToList();
 
             return fotoFileNames;

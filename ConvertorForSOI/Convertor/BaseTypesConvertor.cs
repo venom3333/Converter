@@ -12,17 +12,16 @@ namespace ConvertorForSOI
 {
     class BaseTypesConvertor
     {
-        public static void BaseTypeConvert (DataSet dsSource, ref DataSet dsResult, Map map, string fotoPath, bool isMissingPersons, Dictionary<string, string> tableSet)
+        public static void BaseTypeConvert(DataSet dsSource_ru, ref DataSet dsResult, Map map, string fotoPath, bool isMissingPersons, Dictionary<string, string> tableSet)
         {
             var rows = new List<DataRow>();
             // Набор таблиц в зависимости от Розыска или Пропавших без вести
             tableSet = BaseSQL.GetTableSet(isMissingPersons);
-            DataTable dtHeader = dsSource.Tables["Header"];
+            DataTable dtHeader = dsSource_ru.Tables["Header"];
             // Получаем из таблицы dtHeader тип документа и в соответствии с типом выбираем правильную карту конвертации. 
             MapSourceItem.TypeDocument typeDocument = MapSourceItem.GetTypeDocumentByString(dtHeader.Rows[2][0].ToString());
 
-
-            DataTable dtBody = dsSource.Tables["Body"];
+            DataTable dtBody_ru = dsSource_ru.Tables["Body"];
 
             List<MapConvertItem> listConvert = map.MapSource.Where(g => g.TypeDoc == typeDocument).Select(g => g.MapConvertList).First();
 
@@ -31,12 +30,24 @@ namespace ConvertorForSOI
 
             // Получаем номера code и номер num, на основе последних номеров в базе данных nake_data.
             string code = Map.GetNextCode();
-            FullName fullName = null;
-            BirthDate birthDate = null;
+
+            System.Diagnostics.Debug.WriteLine("Основной цикл:");
+
+            int counter = 0;
 
             // Проходим по строкам документа
-            foreach (DataRow row in dtBody.Rows)    // row строка из документа (еще не парсенная)
+            foreach (DataRow row in dtBody_ru.Rows)    // row строка из документа (еще не парсенная)
             {
+                if (counter % 100 == 0)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Строка: {counter}");
+                }
+                counter++;
+
+                FullName fullName = null;
+                BirthDate birthDate = null;
+                string personnote = String.Empty;
+                string personnote_en = string.Empty;
                 // Пропускаем пустые строки.
                 if (!row.ItemArray.Any(g => (!string.IsNullOrWhiteSpace(g.ToString()))))
                     continue;
@@ -51,6 +62,12 @@ namespace ConvertorForSOI
                 {
                     foreach (MapConvertItem mci in listConvert)
                     {
+                        // Если нет нужного столбца (индекс маппинга вышел за пределы реальной таблицы из файла)
+                        if ((row.ItemArray.Length - 1) < mci.SourceTableIndex)
+                        {
+                            continue;
+                        }
+
                         switch (mci.SourceTableIndex)
                         {
                             // -1 означает, что данное поле не заполняется.
@@ -74,21 +91,40 @@ namespace ConvertorForSOI
                             // Парсим полное имя на составляющие и в соответстии с номером категории берем значение.
                             case ConvertCategory.FullName:
                                 {
-                                    fullName = new FullName(row[mci.SourceTableIndex].ToString());
-                                    newRow[mci.ResultTableIndex] = fullName.Names[mci.NumberCategory];
+                                    FullName tempfullName = new FullName(row[mci.SourceTableIndex].ToString());
+                                    newRow[mci.ResultTableIndex] = tempfullName.Names[mci.NumberCategory];
+
+                                    if (fullName == null)
+                                    {
+                                        fullName = tempfullName;
+                                    }
                                     break;
                                 }
                             // Парсим дату рождения на составляющие и в соответстии с номером категории берем значение.
                             case ConvertCategory.BirthDate:
                                 {
                                     birthDate = new BirthDate(row[mci.SourceTableIndex].ToString());
-                                    if (string.IsNullOrWhiteSpace(birthDate.BirthDates[mci.NumberCategory].ToString()))
+                                    if (mci.NumberCategory == -1)
                                     {
-                                        newRow[mci.ResultTableIndex] = DBNull.Value;
+                                        if (birthDate.Date != DateTime.MinValue)
+                                        {
+                                            newRow[mci.ResultTableIndex] = birthDate.Date;
+                                        }
+                                        else
+                                        {
+                                            newRow[mci.ResultTableIndex] = DBNull.Value;
+                                        }
                                     }
                                     else
                                     {
-                                        newRow[mci.ResultTableIndex] = birthDate.BirthDates[mci.NumberCategory];
+                                        if (string.IsNullOrWhiteSpace(birthDate.BirthDates[mci.NumberCategory].ToString()))
+                                        {
+                                            newRow[mci.ResultTableIndex] = DBNull.Value;
+                                        }
+                                        else
+                                        {
+                                            newRow[mci.ResultTableIndex] = birthDate.BirthDates[mci.NumberCategory];
+                                        }
                                     }
                                     break;
                                 }
@@ -197,20 +233,37 @@ namespace ConvertorForSOI
                             // Для заполнения поля note в таблице person. Сюда заносим всё, что непонятно. ФИО в скобках, рядом с основным ФИО, поле "Известен также как".
                             case ConvertCategory.PersonNote:
                                 {
-                                    string personnote = String.Empty;
                                     if (mci.SourceTableIndex >= 0)
-                                    {
+                                    { 
                                         if (!string.IsNullOrWhiteSpace(row[mci.SourceTableIndex].ToString()))
-                                            personnote = row[mci.SourceTableIndex].ToString();
+                                        {
+                                            if (mci.SourceTableIndex == 18) // Хардкод для FormHz
+                                            {
+                                                personnote_en += row[mci.SourceTableIndex].ToString();
+                                            }
+                                            else
+                                            {
+                                                personnote += " " + row[mci.SourceTableIndex].ToString();
+                                            }
+                                        }
                                     }
                                     if (fullName != null && !string.IsNullOrWhiteSpace(fullName.AddedName))
                                     {
-                                        personnote += " " + fullName.AddedName;
+                                        personnote = $"{fullName.AddedName}, {personnote}";
                                     }
-                                    if (string.IsNullOrWhiteSpace(personnote))
+                                    if (string.IsNullOrWhiteSpace(personnote) && string.IsNullOrWhiteSpace(personnote_en))
                                         addedRow[mci.ResultTableIndex] = DBNull.Value;
                                     else
-                                        addedRow[mci.ResultTableIndex] = personnote;
+                                    {
+                                        if (mci.SourceTableIndex == 18)
+                                        {
+                                            addedRow[mci.ResultTableIndex] = personnote_en.Trim();
+                                        }
+                                        else
+                                        {
+                                            addedRow[mci.ResultTableIndex] = personnote.Trim();
+                                        }
+                                    }
                                     break;
                                 }
 
@@ -227,7 +280,14 @@ namespace ConvertorForSOI
                             //(ConvertCategory.NoCategory) Просто без изменений переносим содержимое ячейки из таблицы источника в результирующую таблицу.
                             case ConvertCategory.NoCategory:
                                 {
-                                    newRow[mci.ResultTableIndex] = row[mci.SourceTableIndex];
+                                    if (string.IsNullOrWhiteSpace((string)row[mci.SourceTableIndex]))
+                                    {
+                                        newRow[mci.ResultTableIndex] = DBNull.Value;
+                                    }
+                                    else
+                                    {
+                                        newRow[mci.ResultTableIndex] = row[mci.SourceTableIndex];
+                                    }
                                     break;
                                 }
                             default:
@@ -244,13 +304,11 @@ namespace ConvertorForSOI
 
                 // Проверочная логика (на существующих лиц и на снятие с розыска/поисков)
                 // и занесение в таблицы
-                Convertor.CheckLogics(newRow, addedRow, isMissingPersons, ref dsResult);
+                Convertor.CheckLogics(newRow, addedRow, isMissingPersons, ref dsResult, typeDocument);
 
                 // логика сode
                 code = Map.GetNextCode();
             }
-
-            
             return;
         }
     }

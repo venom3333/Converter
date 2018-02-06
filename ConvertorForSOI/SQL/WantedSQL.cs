@@ -214,16 +214,178 @@ group by p1.a_code
             return person > 0;
         }
 
-        // Возвращает A_ID таблицы NAK_WANTED по информации из NAK_AJUSTINGDATA
-        public static int GetWantedID(string lastName = "", string firstName = "", string secondName1 = "", int monthBirthDate = 0, int yearBirthDate = 0, int dayBirthDate = 0)
+        internal static bool AddTranslateInfo(int personId, int wantedID, DataRow newRow, DataRow addedRow)
         {
+
+            //Находим personId по wantedID
+            if (personId == 0 && wantedID > 0)
+            {
+                personId = 0;
+
+                string adjustingIdQuery = $@"
+SELECT p.A_ID FROM NAK_PERSON AS p
+INNER JOIN NAK_WANTED AS w ON w.A_PERSON = p.A_ID
+WHERE w.A_ID = {wantedID}";
+                // Соединиться с БД
+                using (SqlConnection conn = new SqlConnection(Config.ConnectionStringNakData))
+                {
+                    conn.Open();
+
+                    using (var sqlCommand = new SqlCommand(adjustingIdQuery, conn))
+                    {
+                        var obj = sqlCommand.ExecuteScalar();
+                        if (obj != null)
+                        {
+                            personId = (int)obj;
+                        }
+                    }
+                }
+            }
+            // 8 - lastName_en (NAK_ADJUSTINGDATA.A_LASTNAME_EN)
+            // 9 - firstName_en (NAK_ADJUSTINGDATA.A_FIRSTNAME_EN)
+            // 10 - secondName1_en (NAK_ADJUSTINGDATA.A_SECONDNAME1_EN)
+            // 13 - birthplace_en   (NAK_PERSON.A_BIRTHPLACE_EN)
+            // addedrow 2 - notes (NAK_PERSON.A_NOTE_EN)
+            // 19 - accusation_en (NAK_WANTED.A_ACCUSATION_EN)
+
+            string lastName_en = newRow.ItemArray[8]?.ToString().Replace("'", "''");
+            string firstName_en = newRow.ItemArray[9]?.ToString().Replace("'", "''");
+            string secondName_en = newRow.ItemArray[10]?.ToString().Replace("'", "''");
+            string birthplace_en = newRow.ItemArray[13]?.ToString().Replace("'", "''");
+            string notes_en = addedRow.ItemArray[2]?.ToString().Replace("'", "''");
+            string accusation_en = newRow.ItemArray[19]?.ToString().Replace("'", "''");
+
+            string mainFullName_en = $"{lastName_en} {firstName_en} {secondName_en}";
+
+            StringBuilder addTranslationQuery = new StringBuilder();
+
+            // Имя, фамилия, отчество (NAK_ADJUSTINGDATA)
+            if (!string.IsNullOrWhiteSpace(lastName_en) || !string.IsNullOrWhiteSpace(firstName_en) || !string.IsNullOrWhiteSpace(secondName_en))
+            {
+                addTranslationQuery.Append($@"
+UPDATE NAK_ADJUSTINGDATA
+    SET");
+                // Фамилия
+                if (!string.IsNullOrWhiteSpace(lastName_en))
+                {
+                    addTranslationQuery.Append($@"
+        A_LASTNAME_EN = '{lastName_en}',");
+                }
+
+                // Имя
+                if (!string.IsNullOrWhiteSpace(firstName_en))
+                {
+                    addTranslationQuery.Append($@"
+        A_FIRSTNAME_EN = '{firstName_en}',");
+                }
+
+                // Отчество
+                if (!string.IsNullOrWhiteSpace(secondName_en))
+                {
+                    addTranslationQuery.Append($@"
+        A_SECONDNAME1_EN = '{secondName_en}',");
+                }
+
+                // Если осталась висячая запятая
+                addTranslationQuery.Replace(",", string.Empty, addTranslationQuery.Length - 2, addTranslationQuery.Length - (addTranslationQuery.Length - 2));
+
+                addTranslationQuery.Append($@"
+    WHERE A_PERSON = {personId}");
+
+                addTranslationQuery.Append(";");
+            }
+
+            // NAK_PERSON
+            if (!string.IsNullOrWhiteSpace(birthplace_en) || !string.IsNullOrWhiteSpace(notes_en) || !string.IsNullOrWhiteSpace(mainFullName_en))
+            {
+                addTranslationQuery.Append($@"
+UPDATE NAK_PERSON
+    SET");
+                // Место рождения
+                if (!string.IsNullOrWhiteSpace(birthplace_en))
+                {
+                    addTranslationQuery.Append($@"
+        A_BIRTHPLACE_EN = '{birthplace_en}',");
+                }
+
+                // Доп инфо
+                if (!string.IsNullOrWhiteSpace(notes_en))
+                {
+                    addTranslationQuery.Append($@"
+        A_NOTE_EN = '{notes_en}',");
+                }
+
+                // Полное имя
+                if (!string.IsNullOrWhiteSpace(mainFullName_en))
+                {
+                    addTranslationQuery.Append($@"
+        A_MAINFULLNAME_EN = '{mainFullName_en}',");
+                }
+
+                // Если осталась висячая запятая
+                addTranslationQuery.Replace(",", string.Empty, addTranslationQuery.Length - 2, addTranslationQuery.Length - (addTranslationQuery.Length - 2));
+
+                addTranslationQuery.Append($@"
+    WHERE A_ID = {personId}");
+
+                addTranslationQuery.Append(";");
+            }
+
+            // NAK_WANTED
+            if (!string.IsNullOrWhiteSpace(accusation_en))
+            {
+                addTranslationQuery.Append($@"
+UPDATE NAK_WANTED
+    SET");
+                // Основания розыска
+                if (!string.IsNullOrWhiteSpace(accusation_en))
+                {
+                    addTranslationQuery.Append($@"
+        A_ACCUSATION_EN = '{accusation_en}',");
+                }
+
+                // Если осталась висячая запятая
+                addTranslationQuery.Replace(",", string.Empty, addTranslationQuery.Length - 2, addTranslationQuery.Length - (addTranslationQuery.Length - 2));
+
+                addTranslationQuery.Append($@"
+    WHERE A_PERSON = {personId}");
+
+                addTranslationQuery.Append(";");
+            }
+
+            // Соединиться с БД
+            using (SqlConnection conn = new SqlConnection(Config.ConnectionStringNakData))
+            {
+                conn.Open();
+
+                using (var sqlCommand = new SqlCommand(addTranslationQuery.ToString(), conn))
+                {
+                    try
+                    {
+                        sqlCommand.ExecuteNonQuery();
+                        return true;
+                    }
+                    catch (Exception e)
+                    {
+                        MessageBox.Show(e.StackTrace + "\n" + e.Message);
+                        return false;
+                    }
+                }
+            }
+
+        }
+
+        // Возвращает A_ID таблицы NAK_WANTED по информации из NAK_AJUSTINGDATA
+        public static int GetWantedID(out int personId, string lastName = "", string firstName = "", string secondName1 = "", int monthBirthDate = 0, int yearBirthDate = 0, int dayBirthDate = 0)
+        {
+            personId = 0;
             string sql = String.Format(@"
-SELECT dbo.NAK_WANTED.A_ID
+SELECT wanted.A_ID as wantedId, person.A_ID as personId
 FROM dbo.NAK_PERSON AS person
 INNER JOIN dbo.NAK_ADJUSTINGDATA AS adj
 ON person.A_ID = adj.A_PERSON
-INNER JOIN dbo.NAK_WANTED
-ON person.A_ID = dbo.NAK_WANTED.A_PERSON
+INNER JOIN dbo.NAK_WANTED as wanted
+ON person.A_ID = wanted.A_PERSON
 WHERE (UPPER(adj.A_LASTNAME) = '{0}')
 AND (UPPER(adj.A_FIRSTNAME) = '{1}')
 AND (UPPER(adj.A_SECONDNAME1) = '{2}')
@@ -245,7 +407,7 @@ AND (adj.A_DAYBIRTHDATE = '{5}');",
                     {
                         //MessageBox.Show(String.Format("{0}", reader[0]));
                         wantedID = (int)reader[0];
-                        //person[1] = (int)reader[1];
+                        personId = (int)reader[1];
                     }
                 }
                 finally
@@ -508,7 +670,7 @@ WHERE A_NAME = '{0}'
         }
 
         // Добавляем информацию о снятии с розыска + обновление полей TS в NAK_WANTED и NAK_PERSON
-        public static bool AddSearchEndInfo(int wantedID, BirthDate endDate, string endNote)
+        public static bool AddSearchEndInfo(int wantedID, BirthDate endDate, string endNote, string endNote_en)
         {
             int yearEndDate = int.Parse(endDate.BirthDates[2]);
             int monthEndDate = int.Parse(endDate.BirthDates[3]);
@@ -520,14 +682,15 @@ SET A_YEARENDDATE = {0},
     A_MONTHENDDATE = {1},
     A_DAYENDDATE = {2},
     A_NOTE = '{3}',
+    A_NOTE_EN = '{4}',
     TS = getdate()
-WHERE A_ID = {4};
+WHERE A_ID = {5};
 UPDATE dbo.NAK_PERSON
 SET TS = getdate()
-WHERE A_ID = (  SELECT A_PERSON
+WHERE A_ID = (SELECT A_PERSON
                 FROM dbo.NAK_WANTED
-                WHERE A_ID = {4})",
-        yearEndDate, monthEndDate, dayEndDate, endNote, wantedID);
+                WHERE A_ID = {5})",
+        yearEndDate, monthEndDate, dayEndDate, endNote, endNote_en, wantedID);
 
             // Соединиться с БД
             using (SqlConnection conn = new SqlConnection(Config.ConnectionStringNakData))
