@@ -103,6 +103,8 @@ namespace ConvertorForSOI
 
                 int counter = 0;
                 var fioCounter = 1;
+                string[] lastValues = new string[2];
+
                 System.Diagnostics.Debug.WriteLine("Interop парсинг:");
                 System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString());
                 for (int tableIdx = 1; tableIdx <= docs.Tables.Count; tableIdx++)
@@ -113,26 +115,35 @@ namespace ConvertorForSOI
 
                     // Цикл по всем таблицам документа (на случай если их больше одной)
                     // Считывание данных из word таблицы начинаем с того ряда, который указан в msi. 
-                    ParallelOptions options = new ParallelOptions();
-                    options.MaxDegreeOfParallelism = 32;
+                    //ParallelOptions options = new ParallelOptions();
+                    //options.MaxDegreeOfParallelism = 32;
                     //Parallel.For(rowNumber, docs.Tables[tableIdx].Rows.Count + 1, options, i =>
                     for (int i = rowNumber; i <= docs.Tables[tableIdx].Rows.Count; i++)
                     {
                         Interlocked.Increment(ref counter);
-                        if (counter % 100 == 0)
-                        {
+                        //if (counter % 100 == 0)
+                        //{
                             System.Diagnostics.Debug.WriteLine($"Строка: {counter}");
-                            System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString());
-                        }
+                        //    System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString());
+                        //}
 
                         DataRow dataRow = dtBody.NewRow();
 
                         // флаг для привязки имен фотографий
                         bool flagFIO = false;
-                        Word.Cells cells = docs.Tables[tableIdx].Rows[i].Cells;
+                        Word.Cells cells = null;
+                        try
+                        {
+                            cells = docs.Tables[tableIdx].Rows[i].Cells;
+                        }
+                        catch (Exception ex)
+                        {
+                            //System.Diagnostics.Debug.WriteLine($"{ex.Message}\n {lastValues[0]}: {lastValues[1]}");
+                            i = docs.Tables[tableIdx].Rows.Count;
+                        }
 
                         // Если левые строки в таблице, то пропускаем
-                        if (cells.Count < 2) { }
+                        if (cells == null || cells.Count < 2) { }
                         else
                         {
                             foreach (Word.Cell cell in cells)
@@ -167,7 +178,7 @@ namespace ConvertorForSOI
                                         {
                                             // соберем полное имя файла
                                             var guid = Guid.NewGuid();
-                                            fullFileName = $"{guid}_{fio}_{shapeCounter}.jpg";
+                                            fullFileName = $"{guid}_{shapeCounter}.jpg";
                                             Path.GetInvalidFileNameChars().Aggregate(fullFileName, (current, c) => current.Replace(c.ToString(), string.Empty));
                                             // получаем изображение в переменную
                                             BitmapSource img = Clipboard.GetImage();
@@ -190,6 +201,8 @@ namespace ConvertorForSOI
                                             dataRow[cell.ColumnIndex - 1] += fullFileName + ";";
                                             stream.Close();
                                             shapeCounter++;
+                                            Clipboard.Clear();
+                                            Clipboard.Flush();
                                         }
                                     }
                                     // Обнуляем строку с названием файла
@@ -198,7 +211,15 @@ namespace ConvertorForSOI
                                 }
                                 else
                                 {
-                                    if (range.Text.ToLower().Contains("установочн") || range.Text.ToLower().Contains("ф.и.о.") || range.Text.ToLower().Contains("фио"))
+                                    var text = range.Text.ToLower();
+                                    if (text.Contains("установочн") 
+                                       || text.Contains("ф.и.о.")
+                                       || text.Contains("фио")
+                                       || text.Contains("фамилия")
+                                       || text.Contains("family name")
+                                       || text.Contains("person's identification")
+                                       || text.Contains("identification data of person") 
+                                       || text.Contains("patronymic")) 
                                     {
                                         flagFIO = true;
                                     }
@@ -222,6 +243,8 @@ namespace ConvertorForSOI
                             lock (dtBody)
                             {
                                 dtBody.Rows.Add(dataRow);
+                                lastValues[0] = (string)dataRow.ItemArray[0];
+                                lastValues[1] = (string)dataRow.ItemArray[1];
                             }
                         }
 

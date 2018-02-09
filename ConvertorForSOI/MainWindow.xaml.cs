@@ -25,6 +25,7 @@ using System.Configuration;
 using ConvertorForSOI.SQLs;
 using SZI.Import;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
 
 namespace ConvertorForSOI
 {
@@ -245,9 +246,15 @@ namespace ConvertorForSOI
             bool isMissingPersons = args["isMissing"] == "true" ? true : false;
 
             if (Convertor.ConvertToXLS(sourceFileRus, sourceFileEng, photoPath, isMissingPersons))
+            {
+                Debug.WriteLine("Все нормуль! ГОТОВО!");
                 MessageBox.Show("ГОТОВО!");
+            }
             else
+            {
+                Debug.WriteLine("Какая-то лажа");
                 MessageBox.Show("Что-то не так!");
+            }
         }
 
         // Вызываем метод для прикрепления фото.

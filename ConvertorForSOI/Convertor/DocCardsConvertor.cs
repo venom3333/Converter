@@ -62,7 +62,7 @@ namespace ConvertorForSOI
                     continue;
                 }
                 // ФИО
-                else if (rowsRus[rowIdx].Field<string>(0).ToLower().Contains("установоч") || rowsRus[rowIdx].Field<string>(0).ToLower().Contains("ф.и.о.") || rowsRus[rowIdx].Field<string>(0).ToLower().Contains("фио"))
+                else if (rowsRus[rowIdx].Field<string>(0).ToLower().Contains("установоч") || rowsRus[rowIdx].Field<string>(0).ToLower().Contains("ф.и.о.") || rowsRus[rowIdx].Field<string>(0).ToLower().Contains("фио") || rowsRus[rowIdx].Field<string>(0).ToLower().Contains("фамилия"))
                 {
                     // заполняем поле code 
                     newRow[1] = code;
